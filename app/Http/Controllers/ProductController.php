@@ -129,35 +129,33 @@ class ProductController extends Controller
             //                             href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             // </div>';
 
-            $action = '<div class="d-flex align-items-center list-action justify-content-center">';
+            $action = '<div class="d-flex align-items-center">';
+            $action .= '<div class="dropdown ml-auto">
+                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
+                    <i class="las la-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">';
 
             // PRICE CHANGE BUTTON
             if (canDo($roleId, 'product-price-change', $ownerId)) {
-                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" title="Price Change"
-                href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')">
-                <i class="ri-currency-line"></i></a>';
+                $action .= '<a class="dropdown-item" href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line mr-2"></i> Price Change</a>';
             }
 
-            $action .= '<a class="badge badge-info mr-2" title="View"
-                onclick="viewProduct(' . $product->id . ')">
-                <i class="las la-eye"></i></a>';
+            $action .= '<a class="dropdown-item" href="#" onclick="viewProduct(' . $product->id . ')"><i class="las la-eye mr-2"></i> View</a>';
 
 
             // EDIT BUTTON
             if (canDo($roleId, 'product-edit', $ownerId)) {
-                $action .= '<a class="badge bg-success mr-2" title="Edit"
-                href="' . url('/products/edit/' . $product->id) . '">
-                <i class="ri-pencil-line"></i></a>';
+                $action .= '<a class="dropdown-item" href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-2"></i> Edit</a>';
             }
 
             // DELETE BUTTON
             if (canDo($roleId, 'product-delete', $ownerId)) {
-                $action .= '<a class="badge bg-warning mr-2" title="Delete"
-                href="#" onclick="delete_product(' . $product->id . ')">
-                <i class="ri-delete-bin-line"></i></a>';
+                $action .= '<a class="dropdown-item text-danger" href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-2"></i> Delete</a>';
             }
 
-            $action .= '</div>';
+            $action .= '</div></div>'; // end dropdown
+            $action .= '</div>'; // end d-flex
 
 
             $status = ($product->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>');

@@ -16,25 +16,27 @@
                     <p>{{ session('success') }}</p>
                 @endif
 
-                <table class="table datatable" id="products_table">
-                    <thead>
-                        
-                        <tr>
-                            <th>Product</th>
-                            <th>Location</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Batch No</th>
-                            <th>Expiry Date</th>
-                            <th>Low Stock Alert Level</th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="table-responsive rounded mb-3">
+                    <table class="table datatable" id="products_table">
+                        <thead>
+                            
+                            <tr>
+                                <th>Product</th>
+                                <th>Location</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Batch No</th>
+                                <th>Expiry Date</th>
+                                <th>Low Stock Alert Level</th>
+                                <th>Status</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Page end  -->
             </div>
@@ -111,6 +113,26 @@
                 ],
                 buttons: ['pageLength']
 
+            });
+
+            // Fix dropdown clipping in responsive table
+            $('.table-responsive').on('shown.bs.dropdown', function(e) {
+                var $menu = $(e.target).find('.dropdown-menu');
+                $('body').append($menu.detach());
+                $menu.css({
+                    'display': 'block',
+                    'top': $(e.target).find('[data-toggle="dropdown"]').offset().top + $(e.target).find('[data-toggle="dropdown"]').outerHeight(),
+                    'left': $(e.target).find('[data-toggle="dropdown"]').offset().left - ($menu.outerWidth() - $(e.target).find('[data-toggle="dropdown"]').outerWidth())
+                });
+            });
+
+            $('.table-responsive').on('hide.bs.dropdown', function(e) {
+                var $menu = $('body > .dropdown-menu:last-child');
+                $(e.target).append($menu.detach().css({
+                    'display': '',
+                    'top': '',
+                    'left': ''
+                }));
             });
 
         });

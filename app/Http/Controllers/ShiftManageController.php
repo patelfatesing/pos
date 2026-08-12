@@ -156,56 +156,28 @@ class ShiftManageController extends Controller
             //     </a>';
 
             // Show "Close Shift" button if end_time is within next 30 minutes
-            // if ($endTime && $now->diffInMinutes($endTime, false) >= 0 && $now->diffInMinutes($endTime, false) <= 30) {
+            $action = '<div class="d-flex align-items-center">';
+            $action .= '<div class="dropdown ml-auto">
+                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
+                    <i class="las la-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">';
+
+            // Show "Close Shift" button
             if ($row->status == "pending") {
-                $action = '<a class="badge bg-warning ml-2 close-shift" 
-                                href="javascript:void(0);" 
-                                data-id="' . $row->id . '" 
-                                title="Open Shift">
-                                <i class="ri-lock-unlock-line"></i> Open Shift
-                            </a>';
+                $action .= '<a class="dropdown-item close-shift" href="javascript:void(0);" data-id="' . $row->id . '"><i class="ri-lock-unlock-line mr-2"></i> Open Shift</a>';
             } else {
-                $action = '<a class="badge bg-secondary ml-2 close-shift" 
-                                href="javascript:void(0);" 
-                                data-id="' . $row->id . '" 
-                                title="Closed">
-                                <i class="ri-lock-line"></i> Closed
-                            </a>';
+                $action .= '<a class="dropdown-item close-shift" href="javascript:void(0);" data-id="' . $row->id . '"><i class="ri-lock-line mr-2"></i> Closed</a>';
             }
-            // }
-            // if (canDo($roleId, 'view-transactions', $ownerId)) {
-            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
-                <i class="ri-eye-line"></i>
-                </a>';
-            // }
 
-            $action .= '<a class="badge bg-primary ml-2 view-image-btn"
-                    href="javascript:void(0);"
-                    data-image="' . e($img) . '"
-                    title="View Physical Stock Photo">
-                    <i class="ri-image-line"></i>
-                </a>';
+            $action .= '<a class="dropdown-item view-invoices" href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '"><i class="ri-eye-line mr-2"></i> View Transactions</a>';
+            
+            $action .= '<a class="dropdown-item view-image-btn" href="javascript:void(0);" data-image="' . e($img) . '"><i class="ri-image-line mr-2"></i> View Physical Stock Photo</a>';
 
-            // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-            //     href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
-            //     <i class="ri-image-line"></i>
-            //     </a>';
-            // if (canDo($roleId, 'view-physical-stock-photo', $ownerId)) {
-            // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-            //     href="javascript:void(0);" onclick="showImage(getImagePath(\'' . $row->physical_photo . '\'))" title="View Physical Stock Photo">
-            //     <i class="ri-image-line"></i>
-            // </a>';
-            // }
+            $action .= '<a class="dropdown-item" href="' . url('/shift-manage/print-shift/' . $row->id) . '" target="_blank"><i class="ri-file-pdf-line mr-2"></i> Print Shift PDF</a>';
 
-            // if (canDo($roleId, 'print-shift-PDF', $ownerId)) {
-            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                    href="' . url('/shift-manage/print-shift/' . $row->id) . '" title="Print Shift PDF" target="_blank">
-                    <i class="ri-file-pdf-line"></i>
-                </a>';
-            // }
-
-            $action .= '</div>';
+            $action .= '</div></div>'; // end dropdown
+            $action .= '</div>'; // end d-flex
 
 
             $records[] = [

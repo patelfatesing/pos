@@ -442,6 +442,26 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 table.ajax.reload(null, false);
             });
 
+            // Fix dropdown clipping in responsive table
+            $('.table-responsive').on('shown.bs.dropdown', function(e) {
+                var $menu = $(e.target).find('.dropdown-menu');
+                $('body').append($menu.detach());
+                $menu.css({
+                    'display': 'block',
+                    'top': $(e.target).find('[data-toggle="dropdown"]').offset().top + $(e.target).find('[data-toggle="dropdown"]').outerHeight(),
+                    'left': $(e.target).find('[data-toggle="dropdown"]').offset().left - ($menu.outerWidth() - $(e.target).find('[data-toggle="dropdown"]').outerWidth())
+                });
+            });
+
+            $('.table-responsive').on('hide.bs.dropdown', function(e) {
+                var $menu = $('body > .dropdown-menu:last-child');
+                $(e.target).append($menu.detach().css({
+                    'display': '',
+                    'top': '',
+                    'left': ''
+                }));
+            });
+
         });
 
         $('#priceUpdateForm').on('submit', function(e) {

@@ -100,18 +100,19 @@ class CommissionUserController extends Controller
             // $last_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">' . $commissionUser->last_name . '</a></div>';
 
 
-            $action = '<div class="d-flex align-items-center list-action">';
-            // if (canDo($roleId, 'commission-customer-edit', $ownerId)) {
-                $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
-            // }
-            $action .= '<a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/commission-cust/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-0"></i></a>';
-            // if (canDo($roleId, 'commission-customer-delete', $ownerId)) {
-                $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
-            // }
-            $action .= '</div>';
+            $action = '<div class="d-flex align-items-center">';
+            $action .= '<div class="dropdown ml-auto">
+                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
+                    <i class="las la-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">';
+            
+            $action .= '<a class="dropdown-item" href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-2"></i> Edit</a>';
+            $action .= '<a class="dropdown-item" href="' . url('/commission-cust/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-2"></i> View</a>';
+            $action .= '<a class="dropdown-item text-danger" href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-2"></i> Delete</a>';
+            
+            $action .= '</div></div>'; // end dropdown
+            $action .= '</div>'; // end d-flex
 
             // $action = '<div class="d-flex align-items-center list-action">
             //                         <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"

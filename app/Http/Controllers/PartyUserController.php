@@ -101,30 +101,23 @@ class PartyUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
-            $action = '';
-
-
-            $action .= '<div class="d-flex align-items-center list-action">';
-
+            $action = '<div class="d-flex align-items-center">';
+            $action .= '<div class="dropdown ml-auto">
+                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
+                    <i class="las la-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">';
+            
             if ($partyUser->use_credit > 0) {
-                $action .= ' <a class="badge bg-primary mr-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Inline Price Change"'
-                    . ' href="#" onclick="set_due_date(' . (int)$partyUser->id . ')"><i class="ri-calendar-event-fill"></i></a>';
+                $action .= '<a class="dropdown-item" href="#" onclick="set_due_date(' . (int)$partyUser->id . ')"><i class="ri-calendar-event-fill mr-2"></i> Set Due Date</a>';
             }
-            // if (canDo($roleId, 'party-customer-edit', $ownerId)) {
-            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/cust-product-price-change/form?id=' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>';
-            // }
-            $action .= '<a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>';
-
-            // if (canDo($roleId, 'party-customer-edit', $ownerId)) {
-            $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
-            // }
-            // if (canDo($roleId, party-customer-delete', $ownerId)) {
-            $action .= '   <a class="badge bg-danger mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
-             </div>';
+            $action .= '<a class="dropdown-item" href="' . url('/cust-product-price-change/form?id=' . $partyUser->id) . '"><i class="ri-currency-fill mr-2"></i> Price Change</a>';
+            $action .= '<a class="dropdown-item" href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-2"></i> View</a>';
+            $action .= '<a class="dropdown-item" href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-2"></i> Edit</a>';
+            $action .= '<a class="dropdown-item text-danger" href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-2"></i> Delete</a>';
+            
+            $action .= '</div></div>'; // end dropdown
+            $action .= '</div>'; // end d-flex
             // }
 
 
