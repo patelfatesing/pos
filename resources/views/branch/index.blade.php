@@ -22,6 +22,28 @@
     .custom-switch .custom-control-label::after {
         top: calc(0.20rem + 2px);
     }
+
+    /* Improved Dropdown Styling */
+    .dropdown-menu {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-radius: 8px;
+        padding: 0.5rem 0;
+        min-width: 180px;
+    }
+    .dropdown-item {
+        padding: 0.5rem 1rem;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+    }
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+    .dropdown-item i {
+        font-size: 1.1rem;
+        margin-right: 0.75rem;
+    }
 </style>
 
 @php
@@ -42,7 +64,7 @@
                     </a>
                 @endif
             </div>
-            <div class="table-responsive rounded mb-3">
+            <div class="table-responsive rounded mb-3" style="overflow: visible !important;">
                 <table class="table table-striped table-bordered nowrap" id="branch_table">
                     <thead class="bg-white text-uppercase">
                         <tr class="ligth ligth-data">

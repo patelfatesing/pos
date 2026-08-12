@@ -174,59 +174,49 @@ class BranchController extends Controller
             $ownerId = $store->created_by;
             // if (canDo($roleId, 'product-edit', $ownerId)) {
             // }
-            $action = '<div class="d-flex align-items-center list-action">';
-            if ($store->is_warehouser != 'yes') {
-                // $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete"
-                // href="#" onclick="delete_store(' . $store->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
+            $action = '<div class="d-flex align-items-center">';
+            
+            // 2. Dropdown Menu at the End (ml-auto pushes it to the right)
+            $action .= '<div class="dropdown ml-auto">
+                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
+                    <i class="las la-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">';
+
+            // 1. Status Switches INSIDE the dropdown
+            if (canDo($roleId, 'store-edit', $ownerId)) {
+                $action .= '<div class="px-3 py-2">';
+                $action .= '<div class="custom-control custom-switch">';
+                $action .= '<input type="checkbox" class="custom-control-input store-status-switch" id="customSwitch' . $store->id . '" ' . ($store->in_out_enable ? 'checked' : '') . ' data-store-id="' . $store->id . '">';
+                $action .= '<label class="custom-control-label" for="customSwitch' . $store->id . '">In/Out</label>';
+                $action .= '</div>';
+                $action .= '<div class="custom-control custom-switch mt-2">';
+                $action .= '<input type="checkbox" class="custom-control-input capture-status-switch" id="captureSwitch' . $store->id . '" ' . ($store->is_capture ? 'checked' : '') . ' data-store-id="' . $store->id . '">';
+                $action .= '<label class="custom-control-label" for="captureSwitch' . $store->id . '">Capture</label>';
+                $action .= '</div>';
+                $action .= '</div><div class="dropdown-divider"></div>';
             }
+
             if (canDo($roleId, 'add-holiday', $ownerId)) {
-                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="add_store_holiday(' . $store->id . ')"><i class="ri-calendar-event-line"></i></a>';
+                $action .= '<a class="dropdown-item" href="#" onclick="add_store_holiday(' . $store->id . ')"><i class="ri-calendar-event-line mr-2"></i> Add Holiday</a>';
             }
             if (canDo($roleId, 'one-time-sales', $ownerId)) {
-                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="add_one_time_sales(' . $store->id . ')"><i class="ri-price-tag-line"></i></a>';
+                $action .= '<a class="dropdown-item" href="#" onclick="add_one_time_sales(' . $store->id . ')"><i class="ri-price-tag-line mr-2"></i> One Time Sales</a>';
             }
             if (canDo($roleId, 'product-low-stock-set', $ownerId)) {
-                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
+                $action .= '<a class="dropdown-item" href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line mr-2"></i> Stock Adjustment</a>';
             }
             if (canDo($roleId, 'store-edit', $ownerId)) {
-                $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
-                    href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
-                $action .= '<div class="custom-control custom-switch custom-control-inline">
-
-    <input type="checkbox"
-        class="custom-control-input store-status-switch"
-        id="customSwitch' . $store->id . '"
-        ' . ($store->in_out_enable ? 'checked' : '') . '
-        data-store-id="' . $store->id . '">
-
-    <label class="custom-control-label pt-1"
-        for="customSwitch' . $store->id . '">
-        In/Out
-    </label>
-
-</div>';
-
-
-                $action .= '<div class="custom-control custom-switch custom-control-inline ml-2">
-
-    <input type="checkbox"
-        class="custom-control-input capture-status-switch"
-        id="captureSwitch' . $store->id . '"
-        ' . ($store->is_capture ? 'checked' : '') . '
-        data-store-id="' . $store->id . '">
-
-    <label class="custom-control-label pt-1"
-        for="captureSwitch' . $store->id . '">
-        Capture
-    </label>
-
-</div>';
+                $action .= '<a class="dropdown-item" href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-2"></i> Edit Details</a>';
+            }
+            
+            if ($store->is_warehouser != 'yes') {
+                //  $action .= '<div class="dropdown-divider"></div>';
+                //  $action .= '<a class="dropdown-item text-danger" href="#" onclick="delete_store(' . $store->id . ')"><i class="ri-delete-bin-line mr-2"></i> Delete</a>';
             }
 
-            $action .= '</div>';
+            $action .= '</div></div>'; // end dropdown
+            $action .= '</div>'; // end d-flex
 
             $records[] = [
                 'name' => $store->name,
