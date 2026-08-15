@@ -3227,8 +3227,24 @@
     });
 
     window.addEventListener('notiffication-error', (event) => {
-        // Error Example
-        showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
+        // Normalizes Livewire v2 (array) and Livewire v3 (object/array) event payloads
+        const message = event.detail?.message || event.detail?.[0]?.message || 'Item is inactive. Please contact the administrator.';
+        
+        Swal.fire({
+            title: 'LiquorHub!',
+            text: message,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            timer: 3000,
+            timerProgressBar: true,
+            backdrop: true,
+            allowOutsideClick: false,
+            customClass: {
+                popup: 'small-alert'
+            }
+        }).then(() => {
+            forceFocusBarcode();
+        });
     });
 
     window.addEventListener('notiffication-error-close-shift', (event) => {
