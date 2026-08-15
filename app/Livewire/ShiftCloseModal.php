@@ -152,6 +152,21 @@ class ShiftCloseModal extends Component
 
     public $online_amount = 0;
 
+    public function getHoldCount()
+    {
+        if (!$this->currentShift) return 0;
+        
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $start_date = $this->currentShift->start_time;
+        $end_date = $this->currentShift->end_time;
+        
+        return Invoice::where(['user_id' => auth()->user()->id])
+            ->where(['branch_id' => $branch_id])
+            ->where('status', 'Hold')
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->count();
+    }
+
     public function setCapturedImage($image = "")
     {
         $this->capturedImage = $image;

@@ -55,19 +55,24 @@
 
         #add-product-btn {
             white-space: nowrap;
-            height: 38px;
+            height: 36px;
             display: inline-flex;
             align-items: center;
-            position: relative;
-            margin-left: -6px;
-            z-index: 2;
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: #5bbd88;
+            border-color: #5bbd88;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 10px;
         }
 
         #new-product-qty {
-            border-top-right-radius: 0 !important;
-            border-bottom-right-radius: 0 !important;
+            height: 38px;
+            border-radius: 6px !important;
+            text-align: center;
+            font-size: 13px;
+            border: 1px solid #ced4da;
         }
 
         #payment-fields {
@@ -132,9 +137,8 @@
             padding: 6px 8px;
         }
 
-        /* Qty shifted a bit right for breathing room from the dropdown */
         #new-product-qty-wrap {
-            margin-left: 15px;
+            margin-left: 0;
         }
 
         .order-details-card {
@@ -330,6 +334,8 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="d-flex flex-nowrap align-items-center" style="gap: 12px; overflow-x: auto;">
+                                
+                                <!-- Select Product -->
                                 <div id="product-select-wrap" style="flex: 0 1 auto; min-width: 0;">
                                     <select id="new-product-id" class="form-control">
                                         <option value="">Select Product</option>
@@ -344,13 +350,15 @@
                                         @endforeach
                                     </select>
                                 </div>
+
                                 <input type="hidden" name="branch_id" value="{{ $branch_data->id }}">
                                 <input type="hidden" name="type" value="{{ $type }}">
                                 <input type="hidden" name="shift_id" value="{{ $Shift_data->id }}">
-                                <div class="d-flex align-items-center" style="gap: 0; flex: 0 0 auto;">
-                                    <div id="new-product-qty-wrap" style="flex: 0 0 90px;">
-                                        <input type="number" min="1" id="new-product-qty" class="form-control"
-                                            placeholder="Qty">
+
+                                <!-- Qty Input & Add Item Button with Gap -->
+                                <div class="d-flex align-items-center" style="gap: 10px; flex: 0 0 auto;">
+                                    <div id="new-product-qty-wrap" style="flex: 0 0 75px;">
+                                        <input type="number" min="1" id="new-product-qty" class="form-control" placeholder="Qty">
                                     </div>
                                     <div style="flex: 0 0 auto;">
                                         <button type="button" class="btn btn-success" id="add-product-btn">
@@ -358,7 +366,11 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                <!-- Spacer -->
                                 <div style="flex: 1 1 auto;"></div>
+
+                                <!-- Party / Commission Dropdown -->
                                 <div style="flex: 0 0 auto; min-width: 200px;">
                                     @if ($branch_data->id == 1)
                                         <select id="party-id" class="form-control" name="party_user_id">
@@ -382,6 +394,7 @@
                                         </select>
                                     @endif
                                 </div>
+
                             </div>
                         </div>
                     </div>

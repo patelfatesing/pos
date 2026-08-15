@@ -126,7 +126,7 @@
                                                         class="btn btn-warning rounded-pill" title="View Stock Status">
                                                         Add Physical Stock
                                                     </button>
-                                                    @if ($this->showYesterDayShiftTime)
+                                                    @if ($this->showYesterDayShiftTime || $this->getHoldCount() > 0)
                                                         <button type="button"
                                                             class="btn btn-secondary rounded-pill view_hold_btn"
                                                             onclick="openHoldTransactionsModal()"
