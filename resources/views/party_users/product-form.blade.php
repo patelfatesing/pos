@@ -133,6 +133,7 @@
                                         </table>
                                     </div>
                                 </div>
+                                <a href="#" id="scrollToTop"><i class="fas fa-arrow-up"></i></a>
 
                                 <!-- Notes -->
                                 <div class="form-group mt-3">
@@ -159,11 +160,44 @@
         .scrollable-content {
             max-height: 450px;
             overflow-y: auto;
+            position: relative;
         }
 
         .table th,
         .table td {
             vertical-align: middle;
+        }
+
+        /* Optional: Styling for sort indicators */
+        th.sorted-asc::after {
+            content: ' ↑';
+        }
+
+        th.sorted-desc::after {
+            content: ' ↓';
+        }
+
+        #scrollToTop {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            line-height: 42px;
+            color: #007bff;
+            z-index: 1050;
+            transition: background 0.3s, color 0.3s;
+            text-decoration: none;
+            display: none;
+        }
+
+        #scrollToTop:hover {
+            background: #007bff;
+            color: white;
         }
     </style>
 
@@ -298,15 +332,34 @@
                 });
             }
         });
+
+        $(document).ready(function() {
+            var $tableBox = $('.scrollable-content');
+
+            function toggleScrollBtn() {
+                var divScrolled = $tableBox.scrollTop() > 100;
+                var pageScrolled = $(window).scrollTop() > $tableBox.offset().top - 100;
+                if (divScrolled || pageScrolled) {
+                    $('#scrollToTop').fadeIn();
+                } else {
+                    $('#scrollToTop').fadeOut();
+                }
+            }
+
+            $tableBox.on('scroll', toggleScrollBtn);
+            $(window).on('scroll', toggleScrollBtn);
+
+            $('#scrollToTop').on('click', function(e) {
+                e.preventDefault();
+
+                $tableBox.animate({
+                    scrollTop: 0
+                }, 'slow');
+
+                $('html, body').animate({
+                    scrollTop: $tableBox.offset().top - 20
+                }, 'slow');
+            });
+        });
     </script>
 @endsection
-<style>
-    /* Optional: Styling for sort indicators */
-    th.sorted-asc::after {
-        content: ' ↑';
-    }
-
-    th.sorted-desc::after {
-        content: ' ↓';
-    }
-</style>

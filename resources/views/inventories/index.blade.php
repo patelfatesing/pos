@@ -1,5 +1,31 @@
 @extends('layouts.backend.datatable_layouts')
 
+@section('styles')
+    <style>
+        #scrollToTop {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            text-align: center;
+            line-height: 42px;
+            color: #007bff;
+            z-index: 1000;
+            transition: background 0.3s, color 0.3s;
+            text-decoration: none;
+            display: none;
+        }
+        #scrollToTop:hover {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+@endsection
+
 @section('page-content')
     <div class="content-page">
         <div class="container-fluid">
@@ -393,6 +419,19 @@
                 table.ajax.reload(null, false); // Reload DataTable with the new filter value
             });
 
+            // Scroll to top
+            $(window).scroll(function() {
+                if ($(this).scrollTop() > 200) {
+                    $('#scrollToTop').fadeIn();
+                } else {
+                    $('#scrollToTop').fadeOut();
+                }
+            });
+            $('#scrollToTop').click(function(e) {
+                e.preventDefault();
+                $('html, body').animate({scrollTop: 0}, 'slow');
+            });
+
             // Submit low level form
             $('#lowLevelStockUpdateForm').on('submit', function(e) {
                 e.preventDefault();
@@ -471,4 +510,5 @@
             pdfLogo = base64;
         });
     </script>
+    <a href="#" id="scrollToTop"><i class="fa fa-arrow-up"></i></a>
 @endsection
