@@ -44,6 +44,36 @@
             display: none !important;
         }
 
+        /* Cart Table Wrapper & Body Flex / Auto-Fill */
+        #cartTableWrapper {
+            max-height: calc(100vh - 320px);
+            overflow-y: auto;
+        }
+
+        /* Fullscreen Mode Fix */
+        :fullscreen #cartTableWrapper,
+        :-webkit-full-screen #cartTableWrapper {
+            max-height: calc(100vh - 320px) !important;
+            min-height: calc(100vh - 320px) !important;
+        }
+
+        /* Table body scroll fix */
+        #cartTable #cartTableBody {
+            display: table-row-group;
+        }
+
+        /* Spacing fixes around bottom footer */
+        .qty-payble-table {
+            margin-top: auto;
+        }
+
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: calc(100vh - 80px);
+        }
+
         @media screen and (max-resolution: 0.8dppx), (-webkit-max-device-pixel-ratio: 0.8) {
             #cartTable #cartTableBody {
                 max-height: 500px;
