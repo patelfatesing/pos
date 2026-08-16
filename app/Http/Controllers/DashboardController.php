@@ -1062,59 +1062,46 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getTopAndWorstProductsByCategory(?string $fy): array
+    private function getTopAndWorstProductsByCategory(?string $fy, string $category = 'BEER'): array
     {
         [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
 
-        $subCategories = ['BEER', 'IMFL', 'CL', 'RML'];
-
         $rows = DB::select("
-    WITH RECURSIVE seq(n) AS (
-        SELECT 0
-        UNION ALL
-        SELECT n + 1 FROM seq WHERE n < 499
-    )
-    SELECT 
-        JSON_UNQUOTE(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].subcategory'))) AS subcategory,
-        JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id')) AS product_id,
-        p.name AS product_name,
-        SUM(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity'))) AS total_qty,
-        SUM(
-            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity')) *
-            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].price'))
-        ) AS total_amount
-    FROM invoices i
-    JOIN seq
-        ON seq.n < JSON_LENGTH(i.items)
-    JOIN products p 
-        ON p.id = JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id'))
-    WHERE i.created_at BETWEEN ? AND ?
-    AND i.status NOT IN ('Hold', 'resumed', 'archived')
-    GROUP BY subcategory, product_id, p.name
-", [$fyStart, $fyEnd]);
-
+            SELECT 
+                jt.subcategory,
+                jt.product_id,
+                p.name AS product_name,
+                SUM(jt.quantity) AS total_qty,
+                SUM(jt.quantity * jt.price) AS total_amount
+            FROM invoices i
+            CROSS JOIN JSON_TABLE(
+                i.items,
+                '$[*]' COLUMNS (
+                    subcategory VARCHAR(100) PATH '$.subcategory',
+                    product_id INT PATH '$.product_id',
+                    quantity INT PATH '$.quantity',
+                    price DECIMAL(10,2) PATH '$.price'
+                )
+            ) AS jt
+            JOIN products p ON p.id = jt.product_id
+            WHERE i.created_at BETWEEN ? AND ?
+              AND i.status NOT IN ('Hold', 'resumed', 'archived')
+              AND jt.subcategory = ?
+            GROUP BY jt.subcategory, jt.product_id, p.name
+        ", [$fyStart, $fyEnd, $category]);
 
         $collection = collect($rows);
 
-        $top = [];
-        $worst = [];
-
-        foreach ($subCategories as $cat) {
-            $catData = $collection->where('subcategory', $cat);
-
-            $top[$cat] = $catData->sortByDesc('total_qty')->first();
-            $worst[$cat] = $catData->sortBy('total_qty')->first();
-        }
-
         return [
-            'top' => $top,
-            'worst' => $worst,
+            'top'   => $collection->sortByDesc('total_qty')->take(10)->values(),
+            'worst' => $collection->sortBy('total_qty')->take(10)->values(),
         ];
     }
 
     public function ajaxTopAndWorstProducts(Request $request)
     {
-        $data = $this->getTopAndWorstProductsByCategory($request->fy);
+        $category = $request->input('category', 'BEER');
+        $data = $this->getTopAndWorstProductsByCategory($request->fy, $category);
 
         $products = $request->type === 'top'
             ? $data['top']
@@ -1135,7 +1122,7 @@ class DashboardController extends Controller
 
         $hasData = false;
 
-        foreach ($products as $category => $product) {
+        foreach ($products as $product) {
             if (!$product) continue;
             $hasData = true;
 
@@ -1145,7 +1132,7 @@ class DashboardController extends Controller
                             <span class="product-name font-weight-bold text-primary">' . e($product->product_name) . '</span>
                         </td>
                         <td class="text-center">
-                            <span class="badge badge-soft-info px-2 py-1 font-weight-bold" style="font-size: 11px;">' . e($category) . '</span>
+                            <span class="badge badge-soft-info px-2 py-1 font-weight-bold" style="font-size: 11px;">' . e($product->subcategory) . '</span>
                         </td>
                         <td class="text-right font-weight-bold text-dark">' . number_format($product->total_qty) . '</td>
                         <td class="text-right font-weight-bold text-success border-right-0">₹' . number_format($product->total_amount, 2) . '</td>

@@ -638,33 +638,36 @@ $categoryImages = [
                                 <h4 class="card-title mb-0">Top Products</h4>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center gap-2">
-                                <div class="mr-3">
-                                    <a href="{{ route('reports.best_selling.view') }}" class="btn btn-success">
-                                        View All
-                                    </a>
+                                <div class="mr-2">
+                                    <a href="{{ route('reports.best_selling.view') }}" class="btn btn-success">View All</a>
                                 </div>
-                                <div class="dropdown">
-                                    <span class="dropdown-toggle dropdown-bg btn"
-                                        id="dropdownMenuButtonFYTopProduct"
-                                        data-toggle="dropdown">
-                                        {{ request('fy') ?? $data['current_fy'] }}
-                                        <i class="ri-arrow-down-s-line ml-1"></i>
-                                    </span>
 
+                                <!-- Category Dropdown -->
+                                <div class="dropdown mr-2">
+                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButtonCategoryTopProduct" data-toggle="dropdown">
+                                        BEER <i class="ri-arrow-down-s-line ml-1"></i>
+                                    </span>
+                                    <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButtonCategoryTopProduct">
+                                        @foreach (['BEER', 'IMFL', 'CL', 'RML'] as $cat)
+                                            <a class="dropdown-item" href="javascript:void(0)" onclick="changeTopCategory('{{ $cat }}')">{{ $cat }}</a>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- FY Dropdown -->
+                                <div class="dropdown">
+                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButtonFYTopProduct" data-toggle="dropdown">
+                                        {{ request('fy') ?? $data['current_fy'] }} <i class="ri-arrow-down-s-line ml-1"></i>
+                                    </span>
                                     <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButtonFYTopProduct">
                                         @foreach ($data['financial_year_dropdown'] as $fy)
-                                        <a class="dropdown-item"
-                                            href="javascript:void(0)"
-                                            onclick="updateTopProducts('{{ $fy }}')">
-                                            {{ $fy }}
-                                        </a>
+                                            <a class="dropdown-item" href="javascript:void(0)" onclick="updateTopProducts('{{ $fy }}')">{{ $fy }}</a>
                                         @endforeach
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Added mb-4 class here -->
                     <div id="topProductsWrapper" class="mb-5">
                         <p class="text-center text-muted">Loading...</p>
                     </div>
@@ -678,33 +681,36 @@ $categoryImages = [
                                 <h4 class="card-title mb-0">Worst Products</h4>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center">
-                                <div class="mr-3">
-                                    <a href="{{ route('reports.worst_selling.view') }}" class="btn btn-success">
-                                        View All
-                                    </a>
+                                <div class="mr-2">
+                                    <a href="{{ route('reports.worst_selling.view') }}" class="btn btn-success">View All</a>
                                 </div>
-                                <div class="dropdown">
-                                    <span class="dropdown-toggle dropdown-bg btn"
-                                        id="dropdownMenuButtonFYWorstProduct"
-                                        data-toggle="dropdown">
-                                        {{ request('fy') ?? $data['current_fy'] }}
-                                        <i class="ri-arrow-down-s-line ml-1"></i>
-                                    </span>
 
+                                <!-- Category Dropdown -->
+                                <div class="dropdown mr-2">
+                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButtonCategoryWorstProduct" data-toggle="dropdown">
+                                        BEER <i class="ri-arrow-down-s-line ml-1"></i>
+                                    </span>
+                                    <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButtonCategoryWorstProduct">
+                                        @foreach (['BEER', 'IMFL', 'CL', 'RML'] as $cat)
+                                            <a class="dropdown-item" href="javascript:void(0)" onclick="changeWorstCategory('{{ $cat }}')">{{ $cat }}</a>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- FY Dropdown -->
+                                <div class="dropdown">
+                                    <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButtonFYWorstProduct" data-toggle="dropdown">
+                                        {{ request('fy') ?? $data['current_fy'] }} <i class="ri-arrow-down-s-line ml-1"></i>
+                                    </span>
                                     <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButtonFYWorstProduct">
                                         @foreach ($data['financial_year_dropdown'] as $fy)
-                                        <a class="dropdown-item"
-                                            href="javascript:void(0)"
-                                            onclick="updateWorstProducts('{{ $fy }}')">
-                                            {{ $fy }}
-                                        </a>
+                                            <a class="dropdown-item" href="javascript:void(0)" onclick="updateWorstProducts('{{ $fy }}')">{{ $fy }}</a>
                                         @endforeach
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Added mb-4 class here -->
                     <div id="worstProductsWrapper" class="mb-5">
                         <p class="text-center text-muted">Loading...</p>
                     </div>
@@ -936,9 +942,8 @@ $categoryImages = [
     document.addEventListener('DOMContentLoaded', () => {
         if (!window.ApexCharts) return console.error('ApexCharts not loaded');
 
-        const currentFy = @json(request('fy') ?? $data['current_fy']);
-        updateTopProducts(currentFy);
-        updateWorstProducts(currentFy);
+        fetchTopProducts();
+        fetchWorstProducts();
 
         /* Sales Trend */
         charts.sales = createLineChart(
@@ -1237,28 +1242,51 @@ $categoryImages = [
         );
     }
 
+    let selectedTopCategory = 'BEER';
+    let selectedWorstCategory = 'BEER';
+    let currentTopFY = @json(request('fy') ?? $data['current_fy']);
+    let currentWorstFY = @json(request('fy') ?? $data['current_fy']);
+
+    function changeTopCategory(cat) {
+        selectedTopCategory = cat;
+        $('#dropdownMenuButtonCategoryTopProduct').html(cat + ' <i class="ri-arrow-down-s-line ml-1"></i>');
+        fetchTopProducts();
+    }
+
+    function changeWorstCategory(cat) {
+        selectedWorstCategory = cat;
+        $('#dropdownMenuButtonCategoryWorstProduct').html(cat + ' <i class="ri-arrow-down-s-line ml-1"></i>');
+        fetchWorstProducts();
+    }
+
     function updateTopProducts(fy) {
-        $('#dropdownMenuButtonFYTopProduct')
-            .html(fy + ' <i class="ri-arrow-down-s-line ml-1"></i>');
+        currentTopFY = fy;
+        $('#dropdownMenuButtonFYTopProduct').html(fy + ' <i class="ri-arrow-down-s-line ml-1"></i>');
+        fetchTopProducts();
+    }
 
+    function updateWorstProducts(fy) {
+        currentWorstFY = fy;
+        $('#dropdownMenuButtonFYWorstProduct').html(fy + ' <i class="ri-arrow-down-s-line ml-1"></i>');
+        fetchWorstProducts();
+    }
+
+    function fetchTopProducts() {
         $('#topProductsWrapper').html('<p class="text-center">Loading...</p>');
-
         $.get("{{ route('dashboard.ajax.top-worst-products') }}", {
-            fy: fy,
+            fy: currentTopFY,
+            category: selectedTopCategory,
             type: 'top'
         }, function(res) {
             $('#topProductsWrapper').html(res.html);
         }).fail(() => alert('Failed to load top products'));
     }
 
-    function updateWorstProducts(fy) {
-        $('#dropdownMenuButtonFYWorstProduct')
-            .html(fy + ' <i class="ri-arrow-down-s-line ml-1"></i>');
-
+    function fetchWorstProducts() {
         $('#worstProductsWrapper').html('<p class="text-center">Loading...</p>');
-
         $.get("{{ route('dashboard.ajax.top-worst-products') }}", {
-            fy: fy,
+            fy: currentWorstFY,
+            category: selectedWorstCategory,
             type: 'worst'
         }, function(res) {
             $('#worstProductsWrapper').html(res.html);
