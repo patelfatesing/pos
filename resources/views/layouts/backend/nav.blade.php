@@ -164,6 +164,15 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             </div>
                         </li>
                         <li>
+                            <a href="javascript:void(0);" 
+                            class="btn border add-btn shadow-none mx-1 d-flex align-items-center" 
+                            id="btnRefreshPage" 
+                            title="Refresh Page"
+                            onclick="window.location.reload();">
+                                Refresh
+                            </a>
+                        </li>
+                        <li>
                             <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                 data-toggle="modal" data-target="#new-order">{{ session('role_name') }}</a>
                         </li>
