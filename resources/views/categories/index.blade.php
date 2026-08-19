@@ -179,9 +179,9 @@
                 <h5 class="header-main-title">Main Category</h5>
             </div>
             <div class="col-2 text-center px-0">
-                <a href="{{ url('pack-sizes') }}" class="btn btn-sm btn-info px-3 py-1 font-weight-bold shadow-sm" style="border-radius: 20px;">
+                <button type="button" class="btn btn-sm btn-info px-3 py-1 font-weight-bold shadow-sm" style="border-radius: 20px;" data-toggle="modal" data-target="#packSizeModalPopup">
                     <i class="las la-box mr-1"></i> Pack Size
-                </a>
+                </button>
             </div>
             <div class="col-5 text-center">
                 <h5 class="header-main-title">Sub Category</h5>
@@ -422,7 +422,7 @@
             serverSide: true,
             ordering: true,
             ajax: { url: '{{ url('categories/get-data') }}', type: "post" },
-            dom: "<'d-none'lfB>rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
+            dom: "<'row'<'col-12'B>>rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
             buttons: [{
                 extend: 'collection',
                 text: '<i class="fa fa-download"></i>',
@@ -446,15 +446,20 @@
                         customize: function(doc) {
                             doc.content.splice(0, 1);
                             doc.styles.tableHeader.alignment = 'center';
+                            
+                            // Build logo column array
+                            var logoCol = [];
+                            if (pdfLogo && pdfLogo.length > 0) {
+                                logoCol.push({ image: pdfLogo, width: 30 });
+                            }
+                            logoCol.push({ text: 'LiquorHub', fontSize: 11, bold: true, margin: [5, 8, 0, 0] });
+
                             doc.content.unshift({
                                 margin: [0, 0, 0, 12],
                                 columns: [
                                     {
                                         width: '33%',
-                                        columns: [
-                                            { image: pdfLogo, width: 30 },
-                                            { text: 'LiquorHub', fontSize: 11, bold: true, margin: [5, 8, 0, 0] }
-                                        ]
+                                        columns: logoCol
                                     },
                                     { width: '34%', text: 'Categories List', alignment: 'center', fontSize: 16, bold: true, margin: [0, 8, 0, 0] },
                                     { width: '33%', text: 'Generated: ' + new Date().toLocaleString(), alignment: 'right', fontSize: 9, margin: [0, 8, 0, 0] }
@@ -738,5 +743,28 @@
         });
     }
 </script>
+    <!-- Pack Size Modal -->
+    <div class="modal fade" id="packSizeModalPopup" tabindex="-1" role="dialog" aria-labelledby="packSizeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="packSizeModalLabel">Pack Size</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="packSizeModalBody">
+                    <div class="text-center">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#packSizeModalPopup').on('show.bs.modal', function (e) {
+            $('#packSizeModalBody').html('<div class="text-center">Loading...</div>');
+            $('#packSizeModalBody').load("{{ url('pack-size/modal') }}");
+        });
+    </script>
 @endsection
 @endsection

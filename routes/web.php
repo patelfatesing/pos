@@ -292,6 +292,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/ledger/balance-by-name', [LedgerController::class, 'balanceByName']);
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
+    Route::get('/pack-size/modal', function() { return view('pack_sizes.modal'); })->name('packsize.modal');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
     Route::get('/pack-size/create', [PackSizeController::class, 'create'])->name('packsize.create');
     Route::post('/pack-size/store', [PackSizeController::class, 'store'])->name('packsize.store');
