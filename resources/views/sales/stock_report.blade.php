@@ -1,6 +1,20 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
+    <style>
+        #stock-table td, #stock-table th {
+            padding: 4px 6px !important;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        #stock-table th {
+            text-align: center;
+        }
+        #stock-table {
+            width: 100% !important;
+            table-layout: auto;
+        }
+    </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div class="content-page">
@@ -59,29 +73,29 @@
             <!-- Table -->
             <div class="col-lg-12">
                 <div class="table-responsive rounded mb-3">
-                    <table class="table table-striped table-bordered nowrap" id="stock-table">
+                    <table class="table table-striped table-bordered" id="stock-table">
                         <thead class="bg-white">
                             <tr class="ligth ligth-data">
-                                <th>Sr. No.</th>
+                                <th>Sr.<br>No.</th>
                                 <th>Branch</th>
-                                <th>Product</th>
+                                <th style="width: 25%;">Product</th>
                                 <th>Barcode</th>
                                 <th>Category</th>
                                 <th>MRP</th>
-                                <th>Sale Price</th>
-                                <th>Cost Price</th>
+                                <th>Sale<br>Price</th>
+                                <th>Cost<br>Price</th>
                                 <th>Qty</th>
                                 <th>Sold</th>
-                                <th>Total Value</th>
+                                <th>Total<br>Value</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                         <tfoot>
                             <tr>
                                 <th colspan="8" class="text-right">Total Quantity:</th>
-                                <th id="total-qty"></th>
-                                <th id="total-sold"></th>
-                                <th id="total-price"></th>
+                                <th id="total-qty" class="text-end"></th>
+                                <th id="total-sold" class="text-end"></th>
+                                <th id="total-price" class="text-end"></th>
                             </tr>
                             <tr>
                                 <th colspan="5" class="text-right">Selling Total:</th>

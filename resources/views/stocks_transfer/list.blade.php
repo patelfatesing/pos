@@ -118,6 +118,9 @@
                                 case 'cancelled':
                                     badgeClass += 'danger';
                                     break;
+                                case 'approved':
+                                    badgeClass += 'success';
+                                    break;
                                 default:
                                     badgeClass += 'info';
                             }
