@@ -18,10 +18,9 @@
         transition: all 0.2s ease;
     }
 
-    .table td,
-    .table th {
-        vertical-align: middle;
-        font-size: 14px;
+    .store-row td:nth-child(1),
+    .store-row td:nth-child(2) {
+        cursor: pointer;
     }
 
     .badge.bg-light {
@@ -29,49 +28,10 @@
         padding: 6px 8px;
     }
 
-    .modal-backdrop.show:nth-of-type(2) {
-        z-index: 1060;
-    }
-
-    #invoiceModal {
-        z-index: 1070;
-    }
-
     .badge:hover {
         transform: scale(1.1);
         transition: 0.2s;
     }
-
-    .store-row td:nth-child(1),
-    .store-row td:nth-child(2) {
-        cursor: pointer;
-    }
-
-    .verify-single-btn.verified {
-        background: #28a745;
-    }
-
-    .verify-single-btn.unverified {
-        background: #ff5722;
-    }
-
-    /* .table span,
-    .table p {
-        color: #dcdee4 !important;
-    } */
-
-    /* hide checkbox */
-    .verify-checkbox input {
-        display: none;
-    }
-
-    /* icon */
-    .verify-single-btn .icon {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 1px 1px;
-        border-radius: 50%;
-    }
-
     .verify-checkbox input {
         display: none;
     }
@@ -81,14 +41,15 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        padding: 2px 2px;
+        padding: 3px 8px;
         border-radius: 30px;
         font-weight: bold;
         color: #fff;
         cursor: pointer;
         min-width: 130px;
         background: #ff5722;
-        transition: 0.3s;
+        transition: 0.3s ease;
+        pointer-events: auto;
     }
 
     .verify-single-btn.verified {
@@ -99,22 +60,17 @@
         background: #ff5722;
     }
 
-    .verify-single-btn {
-        pointer-events: auto;
-    }
-
     .verify-single-btn .text {
         font-size: 12px;
-        color: #dcdee4 !important;
+        color: #fff !important;
     }
 
     .verify-single-btn .icon {
         font-size: 12px;
-        color: #dcdee4 !important;
-    }
-
-    .verify-checkbox input {
-        display: none;
+        color: #fff !important;
+        background: rgba(255, 255, 255, 0.25);
+        padding: 2px 6px;
+        border-radius: 50%;
     }
 
     .disabled-btn {
@@ -123,86 +79,130 @@
         cursor: not-allowed;
     }
 
-    .verify-checkbox input {
-        display: none;
+    /* ====================================
+       INVOICE MODAL HEADER & ACTIONS
+       ==================================== */
+    #invoiceModal .modal-header {
+        background: #667eea;
+        padding: 14px 24px;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        border-bottom: none;
     }
 
-    .verify-single-btn.verified {
-        background: #28a745;
+    #invoiceModal .modal-header .modal-title {
+        font-size: 1.15rem;
+        letter-spacing: 0.3px;
+        font-weight: 600;
     }
 
-    .verify-single-btn.unverified {
-        background: #ff5722;
+    #invoiceHeaderActions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
-    .verify-single-btn .icon {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 3px 7px;
+    /* Header Action Buttons (Glassmorphism) */
+    #invoiceHeaderActions .btn-header {
+        background: rgba(255, 255, 255, 0.18);
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(4px);
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 6px 14px;
+        transition: all 0.2s ease-in-out;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        line-height: 1.4;
+    }
+
+    #invoiceHeaderActions .btn-header:hover {
+        background: rgba(255, 255, 255, 0.32);
+        border-color: rgba(255, 255, 255, 0.6);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Status Badge in Header */
+    #invoiceHeaderActions .status-badge {
+        background: rgba(255, 193, 7, 0.22);
+        color: #fff3cd !important;
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Attractive Circular Close Button */
+    #invoiceModal .modal-header .btn-close-custom {
+        width: 34px;
+        height: 34px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 50%;
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-left: 24px; /* Space between buttons and close button */
+        padding: 0;
+        transition: all 0.25s ease;
+        backdrop-filter: blur(4px);
+        outline: none;
     }
 
-    /* Store Modal */
-    #storeRowModal {
-        z-index: 1055;
+    #invoiceModal .modal-header .btn-close-custom i,
+    #invoiceModal .modal-header .btn-close-custom span {
+        font-size: 18px;
+        line-height: 1;
+        font-weight: 600;
+        transition: transform 0.25s ease;
     }
 
-    /* Invoice Modal */
-    #invoiceModal {
-        z-index: 1065;
+    #invoiceModal .modal-header .btn-close-custom:hover {
+        background: rgba(255, 71, 87, 0.95);
+        border-color: rgba(255, 71, 87, 1);
+        box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+        transform: scale(1.08);
     }
 
-    /* PDF Modal */
-    #pdfModal {
-        z-index: 1075;
+    #invoiceModal .modal-header .btn-close-custom:hover i,
+    #invoiceModal .modal-header .btn-close-custom:hover span {
+        transform: rotate(90deg);
     }
 
-    #pdfModal .modal-dialog {
-        z-index: 1080;
-    }
+    /* ====================================
+       MODAL Z-INDEX & LAYERING
+       ==================================== */
+    #storeRowModal { z-index: 1055; }
+    #invoiceModal { z-index: 1065; }
+    #pdfModal { z-index: 1075; }
+    #pdfModal .modal-dialog { z-index: 1080; }
+    #salesCustPhotoShowModal { z-index: 1090; }
+    #salesCustPhotoShowModal .modal-dialog { z-index: 1095; }
+    #addSalesModal { z-index: 1100; }
+    #addSalesModal .modal-dialog { z-index: 1105; }
 
-    /* Customer Photo Modal */
-    #salesCustPhotoShowModal {
-        z-index: 1090;
-    }
+    /* Modal Backdrops */
+    .modal-backdrop:nth-of-type(1) { z-index: 1050 !important; }
+    .modal-backdrop:nth-of-type(2) { z-index: 1060 !important; }
+    .modal-backdrop:nth-of-type(3) { z-index: 1070 !important; }
+    .modal-backdrop:nth-of-type(4) { z-index: 1085 !important; }
 
-    #salesCustPhotoShowModal .modal-dialog {
-        z-index: 1095;
-    }
-
-    /* Backdrops */
-    .modal-backdrop:nth-of-type(1) {
-        z-index: 1050 !important;
-    }
-
-    .modal-backdrop:nth-of-type(2) {
-        z-index: 1060 !important;
-    }
-
-    .modal-backdrop:nth-of-type(3) {
-        z-index: 1070 !important;
-    }
-
-    .modal-backdrop:nth-of-type(4) {
-        z-index: 1085 !important;
-    }
-
-    /* Add Sales Modal */
-    #addSalesModal {
-        z-index: 1100;
-    }
-
-    #addSalesModal .modal-dialog {
-        z-index: 1105;
-    }
-
-    /* SweetAlert always top */
-    .swal2-container {
-        z-index: 20000 !important;
-    }
-
-    .swal2-popup {
-        z-index: 20001 !important;
-    }
+    /* SweetAlert Top Layer */
+    .swal2-container { z-index: 20000 !important; }
+    .swal2-popup { z-index: 20001 !important; }
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -373,24 +373,34 @@
     </div>
 
     <!-- Invoice Modal -->
-    <div class="modal fade" id="invoiceModal">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
+<div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content shadow-lg border-0">
 
-                <div class="modal-header">
-                    <h5>Invoice Details</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+            <div class="modal-header d-flex align-items-center justify-content-between text-white">
+                <div class="d-flex align-items-center">
+                    <i class="ri-file-list-3-line mr-2" style="font-size: 20px;"></i>
+                    <h5 class="modal-title mb-0 text-white">Transaction Invoice Details</h5>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <!-- Action Buttons -->
+                    <div id="invoiceHeaderActions"></div>
+                    
+                    <!-- Styled Close Button with 20px left margin -->
+                    <button type="button" class="btn-close-custom" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ri-close-line"></i>
                     </button>
                 </div>
-
-                <div class="modal-body" id="invoiceModalContent">
-                    Loading...
-                </div>
-
             </div>
+
+            <div class="modal-body p-4" id="invoiceModalContent">
+                Loading...
+            </div>
+
         </div>
     </div>
+</div>
 
     <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
         aria-labelledby="salesCustPhotoShowModalLabel" aria-hidden="true">
