@@ -179,7 +179,7 @@
                 <h5 class="header-main-title">Main Category</h5>
             </div>
             <div class="col-2 text-center px-0">
-                <button type="button" class="btn btn-sm btn-info px-3 py-1 font-weight-bold shadow-sm" style="border-radius: 20px;" data-toggle="modal" data-target="#packSizeModalPopup">
+                <button type="button" class="btn text-white px-2 py-1 shadow-sm" style="background-color: #ff7e41; border-color: #ff7e41; border-radius: 25px; font-size: 0.95rem; font-weight: 700;" data-toggle="modal" data-target="#packSizeModalPopup">
                     <i class="las la-box mr-1"></i> Pack Size
                 </button>
             </div>
@@ -262,7 +262,7 @@
     </div>
 </div>
 
-<!-- Add Category Modal (Old File Design) -->
+<!-- Add Category Modal -->
 <div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
@@ -288,7 +288,7 @@
     </div>
 </div>
 
-<!-- Edit Category Modal (Old File Design) -->
+<!-- Edit Category Modal -->
 <div class="modal fade" id="editCategoryModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
@@ -314,7 +314,7 @@
     </div>
 </div>
 
-<!-- Add Sub Category Modal (Old File Design) -->
+<!-- Add Sub Category Modal -->
 <div class="modal fade" id="addSubCategoryModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
@@ -350,7 +350,7 @@
     </div>
 </div>
 
-<!-- Edit Sub Category Modal (Old File Design) -->
+<!-- Edit Sub Category Modal -->
 <div class="modal fade" id="editSubCategoryModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
@@ -422,7 +422,9 @@
             serverSide: true,
             ordering: true,
             ajax: { url: '{{ url('categories/get-data') }}', type: "post" },
-            dom: "<'row'<'col-12'B>>rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
+            dom: "rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
+            /* 
+            // COMMENTED: Download / Export Buttons for Category Table
             buttons: [{
                 extend: 'collection',
                 text: '<i class="fa fa-download"></i>',
@@ -441,13 +443,12 @@
                         text: '<i class="fa fa-file-pdf-o mr-1"></i> PDF', 
                         filename: 'categories_list', 
                         orientation: 'landscape', 
-                        pageSize: 'A4',
+                        pageSize: 'A4', 
                         exportOptions: { columns: [0, 1, 2] },
                         customize: function(doc) {
                             doc.content.splice(0, 1);
                             doc.styles.tableHeader.alignment = 'center';
                             
-                            // Build logo column array
                             var logoCol = [];
                             if (pdfLogo && pdfLogo.length > 0) {
                                 logoCol.push({ image: pdfLogo, width: 30 });
@@ -457,10 +458,7 @@
                             doc.content.unshift({
                                 margin: [0, 0, 0, 12],
                                 columns: [
-                                    {
-                                        width: '33%',
-                                        columns: logoCol
-                                    },
+                                    { width: '33%', columns: logoCol },
                                     { width: '34%', text: 'Categories List', alignment: 'center', fontSize: 16, bold: true, margin: [0, 8, 0, 0] },
                                     { width: '33%', text: 'Generated: ' + new Date().toLocaleString(), alignment: 'right', fontSize: 9, margin: [0, 8, 0, 0] }
                                 ]
@@ -471,6 +469,7 @@
                     }
                 ]
             }],
+            */
             aoColumns: [
                 { data: 'name' },
                 { data: 'is_active' },
@@ -484,8 +483,9 @@
             }],
             order: [[2, 'desc']],
             initComplete: function () {
-                var dtButtons = catTable.buttons().container();
-                $('#cat_export_wrapper').append(dtButtons);
+                // COMMENTED: Category Download Button Append
+                // var dtButtons = catTable.buttons().container();
+                // $('#cat_export_wrapper').append(dtButtons);
 
                 var lengthMenu = $('<select class="dt-select-len"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>');
                 var searchInput = $('<div class="dt-search-box"><input type="search" placeholder="Search List..."></div>');
@@ -505,7 +505,9 @@
             serverSide: true,
             ordering: true,
             ajax: { url: '{{ url('subcategories/get-data') }}', type: "post" },
-            dom: "<'d-none'lfB>rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
+            dom: "<'d-none'lf>rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
+            /* 
+            // COMMENTED: Download / Export Buttons for Sub Category Table
             buttons: [{
                 extend: 'collection',
                 text: '<i class="fa fa-download"></i>',
@@ -516,6 +518,7 @@
                     { extend: 'pdfHtml5', text: '<i class="fa fa-file-pdf-o mr-1"></i> PDF', title: 'Sub Categories List' }
                 ]
             }],
+            */
             aoColumns: [
                 { data: 'name' },
                 { data: 'category_name' },
@@ -526,8 +529,9 @@
             ],
             order: [[3, 'desc']],
             initComplete: function () {
-                var dtButtons = subCatTable.buttons().container();
-                $('#subcat_export_wrapper').append(dtButtons);
+                // COMMENTED: Sub Category Download Button Append
+                // var dtButtons = subCatTable.buttons().container();
+                // $('#subcat_export_wrapper').append(dtButtons);
 
                 var lengthMenu = $('<select class="dt-select-len"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>');
                 var searchInput = $('<div class="dt-search-box"><input type="search" placeholder="Search List..."></div>');
@@ -743,6 +747,7 @@
         });
     }
 </script>
+
     <!-- Pack Size Modal -->
     <div class="modal fade" id="packSizeModalPopup" tabindex="-1" role="dialog" aria-labelledby="packSizeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">

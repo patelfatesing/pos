@@ -18,42 +18,39 @@
     <div class="content-page">
         <div class="container-fluid">
 
-            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                <div>
-                    <h4 class="mb-0">View Transaction - {{ $branch_name }}</h4>
-                </div>
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div>
+        <h4 class="mb-0">View Transaction - {{ $branch_name }}</h4>
+    </div>
 
-                <div class="col-md-4"></div>
+    <div class="d-flex align-items-center flex-wrap" style="gap: 20px;">
+        <div style="min-width: 200px;">
+            @if ($id == 1)
+                <select id="party_user_id" class="form-control">
+                    <option value="">All Party Customers</option>
+                    @foreach ($partyUsers as $u)
+                        <option value="{{ $u->id }}">{{ $u->first_name }}</option>
+                    @endforeach
+                </select>
+            @else
+                <select id="commission_user_id" class="form-control">
+                    <option value="">All</option>
+                    <option value="commission">Commission User</option>
+                    <option value="one_time">One Time Sale</option>
+                </select>
+            @endif
+        </div>
 
-                <div class="col-md-2">
-                    <div class="form-group mb-0">
-                        @if ($id == 1)
-                            <select id="party_user_id" class="form-control">
-                                <option value="">All Party Customers</option>
-                                @foreach ($partyUsers as $u)
-                                    <option value="{{ $u->id }}">{{ $u->first_name }}</option>
-                                @endforeach
-                            </select>
-                        @else
-                            <select id="commission_user_id" class="form-control">
-                                <option value="">All</option>
-                                <option value="commission">Commission User</option>
-                                <option value="one_time">One Time Sale</option>
-                            </select>
-                        @endif
-                    </div>
-                </div>
+        <a href="{{ route('sales.add-sales', ['branch_id' => $id, 'shift_id' => $shift_id]) }}"
+            class="btn btn-success text-nowrap">
+            <i class="fa fa-edit"></i> Add Transaction
+        </a>
 
-                <div class="col-md-2">
-                    <a href="{{ route('sales.add-sales', ['branch_id' => $id, 'shift_id' => $shift_id]) }}"
-                        class="btn btn-success mr-2">
-                        <i class="fa fa-edit"></i> Add Trasaction
-                    </a>
-                </div>
-                <div>
-                    <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
-                </div>
-            </div>
+        <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary text-nowrap">
+            Back
+        </a>
+    </div>
+</div>
 
             <!-- TABLE -->
             <div class="table-responsive rounded mt-2">

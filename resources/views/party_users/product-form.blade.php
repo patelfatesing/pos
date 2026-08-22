@@ -163,9 +163,18 @@
             position: relative;
         }
 
-        .table th,
         .table td {
-            vertical-align: middle;
+            padding-top: 4px !important;
+            padding-bottom: 4px !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            vertical-align: middle !important;
+        }
+
+        .table td .form-control {
+            height: 32px !important;
+            padding: 2px 8px !important;
+            font-size: 14px;
         }
 
         /* Optional: Styling for sort indicators */
