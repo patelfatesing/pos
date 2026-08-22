@@ -2,6 +2,19 @@
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <style>
+        #shift_tbl th, #shift_tbl td {
+            vertical-align: middle !important;
+            padding: 8px 12px;
+            white-space: nowrap;
+        }
+        #shift_tbl th:last-child, #shift_tbl td:last-child {
+            width: 1% !important;
+            text-align: center;
+        }
+    </style>
+
     <!-- Wrapper Start -->
 
     <div class="content-page">
@@ -47,15 +60,15 @@
             </div>
 
             <div class="table-responsive rounded mb-3" id="shiftTableContainer">
-                <table class="table table-striped table-bordered nowrap" id="shift_tbl">
+                <table class="table table-striped table-bordered nowrap w-100" id="shift_tbl">
                     <thead class="bg-white text-uppercase">
                         <tr class="ligth ligth-data">
                             <th>Shift No</th>
                             <th>User</th>
                             <th>Shift Start</th>
                             <th>Shift End</th>
-                            <th>Opening Cash</th>
-                            <th>Closing Cash</th>
+                            <th>Opening <br> Cash</th>
+                            <th>Closing <br> Cash</th>
                             <th>Status</th>
                             {{-- <th>Total Sales</th>
                             <th>Difference</th> --}}
@@ -224,7 +237,8 @@
 
             let table = $('#shift_tbl').DataTable({
                 pageLength: 10,
-                responsive: true,
+                responsive: false,
+                autoWidth: false,
                 processing: true,
                 ordering: true,
                 bLengthChange: true,
@@ -306,7 +320,8 @@
                         data: 'action',
                         name: 'action',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        className: 'text-center'
                     },
                 ],
                 drawCallback: function(settings) {
@@ -594,7 +609,7 @@
             //                     $('#shift_tbl').DataTable().ajax.reload(null, false);
             //                 } else {
             //                     $('#shiftSummaryContent').html(response
-            //                     .html); // show the returned Blade HTML
+            //                         .html); // show the returned Blade HTML
             //                     // Show the modal
             //                     const modal = new bootstrap.Modal(document.getElementById(
             //                         'shiftSummaryModal'));

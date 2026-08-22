@@ -72,11 +72,11 @@
                                     <th>Sr No</th>
                                     <th>Product</th>
                                     <th>Store</th>
-                                    <th>In-Stock</th>
-                                    <th>Cost Price</th>
-                                    <th>Sales Price</th>
-                                    <th>Discount Price</th>
-                                    <th>Stock Low Level</th>
+                                    <th>In-<br>Stock</th>
+                                    <th>Cost<br>Price</th>
+                                    <th>Sales<br>Price</th>
+                                    <th>Discount<br>Price</th>
+                                    <th>Stock Low<br>Level</th>
                                     <th>Last updated</th>
                                 </tr>
                             </thead>

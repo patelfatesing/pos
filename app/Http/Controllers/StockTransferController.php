@@ -192,7 +192,7 @@ class StockTransferController extends Controller
             $action = '<div class="d-flex align-items-center">';
             $action .= '<div class="dropdown ml-auto">
                 <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
-                    <i class="las la-ellipsis-v"></i>
+                    <i class="las la-ellipsis-h"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">';
             
@@ -324,7 +324,7 @@ class StockTransferController extends Controller
             $action = '<div class="d-flex align-items-center">';
             $action .= '<div class="dropdown ml-auto">
                 <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
-                    <i class="las la-ellipsis-v"></i>
+                    <i class="las la-ellipsis-h"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">';
             
@@ -503,9 +503,11 @@ class StockTransferController extends Controller
             // TRANSFER NUMBER
             // =====================================================
 
-            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT);
+            $lastId = StockTransfer::max('id') ?? 0;
+            $nextId = $lastId + 1;
+            $idPart = str_pad($nextId, 2, '0', STR_PAD_LEFT);
 
-            $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
+            $transferNumber = "{$prefix}-{$datePart}-{$idPart}";
 
             // =====================================================
             // PRE STOCK VALIDATION

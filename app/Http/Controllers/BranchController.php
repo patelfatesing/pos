@@ -179,7 +179,7 @@ class BranchController extends Controller
             // 2. Dropdown Menu at the End (ml-auto pushes it to the right)
             $action .= '<div class="dropdown ml-auto">
                 <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
-                    <i class="las la-ellipsis-v"></i>
+                    <i class="las la-ellipsis-h"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">';
 

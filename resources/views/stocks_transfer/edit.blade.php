@@ -7,7 +7,7 @@
             <div class="container-fluid add-form-list">
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                     <div>
-                        <h4 class="mb-0">Edit Stock Transfer</h4>
+                        <h4 class="mb-0">Edit Stock Transfer - {{ $transfer->transfer_number }}</h4>
                     </div>
                     <div>
                         <button onclick="window.history.back()" class="btn btn-secondary">
@@ -70,17 +70,16 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Category *</label>
-                                        <select id="sub_category_ids" name="subcategory_id" class="form-control">
+                                        @php
+                                            $subCategories = \App\Models\SubCategory::all();
+                                        @endphp
+                                        <select id="sub_category_ids" name="subcategory_id" class="form-control" data-style="py-0">
                                             <option value="">Select Category</option>
-                                            @foreach ($categories as $cate)
-                                                <optgroup label="{{ $cate->name }}">
-                                                    @foreach (\App\Models\SubCategory::where('category_id', $cate->id)->get() as $sub)
-                                                        <option value="{{ $sub->id }}" 
-                                                            {{ (isset($transfer) && $transfer->subcategory_id == $sub->id) ? 'selected' : '' }}>
-                                                            {{ $sub->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </optgroup>
+                                            @foreach ($subCategories as $cate)
+                                                <option value="{{ $cate->id }}"
+                                                    {{ (isset($transfer) && $transfer->subcategory_id == $cate->id) ? 'selected' : '' }}>
+                                                    {{ $cate->name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
