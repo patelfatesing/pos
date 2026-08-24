@@ -195,6 +195,7 @@ class ShiftCloseModal extends Component
             ->where(['branch_id' => $branch_id])
             ->where(['status' => "hold"])
             ->delete();
+        $this->dispatch('close-hold-modal');
         $this->dispatch('notiffication-sucess', ['message' => 'Hold removed. You can now close the shift.']);
     }
 
