@@ -1,64 +1,84 @@
 <div>
-    <table class="table table-bordered hold-transactions-table">
-        <thead class="table-info">
-            <tr>
-                <th class="text-start">Sales ID</th>
-                <th>Customer Name</th>
-                <th>Date</th>
-                <th>Quantity</th>
-                <th>Amount</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (count($holdTransactions) == 0)
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle hold-transactions-table mb-0" style="table-layout: fixed; width: 100%;">
+            <thead class="table-info">
                 <tr>
-                    <td colspan="6" class="text-center">No Hold Transactions Found</td>
+                    <th style="width: 20%;" class="text-start ps-3">Sales ID</th>
+                    <th style="width: 20%;" class="text-start">Customer Name</th>
+                    <th style="width: 20%;" class="text-center">Date</th>
+                    <th style="width: 10%;" class="text-center">Quantity</th>
+                    <th style="width: 10%;" class="text-end">Amount</th>
+                    <th style="width: 20%;" class="text-center">Action</th>
                 </tr>
-            @else
-                @foreach ($holdTransactions as $sid => $transaction)
-                    @php
-                        $sumqty = 0;
-                        foreach ($transaction->items as $key => $item) {
-                            $sumqty += $item['quantity'];
-                        }
-                    @endphp
+            </thead>
+            <tbody>
+                @if (count($holdTransactions) == 0)
                     <tr>
-                        {{-- <td>HOLD-{{ $sid+1 }}</td> --}}
-                        <td>{{ $transaction->invoice_number }}</td>
-
-                        @if (auth()->user()->hasRole('warehouse'))
-                            <td>{{ !empty($transaction->partyUser) ? $transaction->partyUser->first_name : 'N/A' }}</td>
-                        @else
-                            <td>{{ !empty($transaction->commissionUser) ? $transaction->commissionUser->first_name : 'N/A' }}
-                            </td>
-                        @endif
-
-                        <td>{{ $transaction->hold_date }}</td>
-                        <td>{{ $sumqty }}</td>
-                        <td>₹{{ $transaction->total }}</td>
-                        <td>
-                            <div class="d-flex gap-1 action-buttons-block justify-content-center">
-                                <button
-                                    wire:click="resumeTransaction('{{ $transaction->id }}', '{{ $transaction->commission_user_id }}', '{{ $transaction->party_user_id }}')"
-                                    class="btn btn-success btn-sm px-3 btn-resume-hold">
-                                    Resume
-                                </button>
-                                <button class="pdf-view btn-pdf-hold"
-                                    wire:click="printInvoice('{{ $transaction->id }}')">
-                                    <img src="{{ asset('assets/images/sidebar-imgs/pdf-ic.svg') }}" alt="PDF">
-                                </button>
-                                <button class="btn btn-danger btn-sm ms-2 remove-item btn-delete-hold"
-                                    onclick="confirmDelete({{ $transaction->id }})">
-                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                        </td>
+                        <td colspan="6" class="text-center py-4 text-muted">No Hold Transactions Found</td>
                     </tr>
-                @endforeach
-            @endif
-        </tbody>
-    </table>
+                @else
+                    @foreach ($holdTransactions as $sid => $transaction)
+                        @php
+                            $sumqty = 0;
+                            foreach ($transaction->items as $key => $item) {
+                                $sumqty += $item['quantity'];
+                            }
+                        @endphp
+                        <tr>
+                            <td class="text-start ps-3 text-nowrap fw-medium">
+                                {{ $transaction->invoice_number }}
+                            </td>
+
+                            <td class="text-start text-truncate">
+                                @if (auth()->user()->hasRole('warehouse'))
+                                    {{ !empty($transaction->partyUser) ? $transaction->partyUser->first_name : 'N/A' }}
+                                @else
+                                    {{ !empty($transaction->commissionUser) ? $transaction->commissionUser->first_name : 'N/A' }}
+                                @endif
+                            </td>
+
+                            <td class="text-center text-nowrap">
+                                {{ $transaction->hold_date }}
+                            </td>
+
+                            <td class="text-center fw-semibold">
+                                {{ $sumqty }}
+                            </td>
+
+                            <td class="text-end fw-semibold text-nowrap">
+                                ₹{{ number_format($transaction->total, 2) }}
+                            </td>
+
+                            <td class="text-end">
+                                <div class="d-inline-flex align-items-center justify-content-center gap-2 action-buttons-block">
+                                    <button
+                                        type="button"
+                                        wire:click="resumeTransaction('{{ $transaction->id }}', '{{ $transaction->commission_user_id }}', '{{ $transaction->party_user_id }}')"
+                                        class="btn btn-success btn-sm px-3 rounded-pill btn-resume-hold">
+                                        Resume
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        class="btn btn-light btn-sm border p-1 pdf-view btn-pdf-hold"
+                                        wire:click="printInvoice('{{ $transaction->id }}')" 
+                                        title="Print PDF">
+                                        <img src="{{ asset('assets/images/sidebar-imgs/pdf-ic.svg') }}" alt="PDF" style="height: 20px; width: 20px;">
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        class="btn btn-light btn-sm text-danger border-0 p-1 remove-item btn-delete-hold"
+                                        onclick="confirmDelete({{ $transaction->id }})" 
+                                        title="Delete">
+                                        <i class="fa fa-trash-o fs-5" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
