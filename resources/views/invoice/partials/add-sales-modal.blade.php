@@ -410,6 +410,7 @@
                                 </option>
                             @endforeach
                         </select>
+                        <div id="customer-balance-info" style="margin-top: 5px; font-size: 0.9em; font-weight: bold; color: #dc3545;"></div>
                     @else
                         <select id="commission-id" class="form-control" name="commission_user_id">
                             <option value="">Select Commission Customer</option>
@@ -1098,6 +1099,7 @@
                 if (!partyUserId) {
                     $(".credit-section").hide();
                     updateProductDiscounts(null, null);
+                    $('#customer-balance-info').text('');
 
                     return;
                 }
@@ -1112,6 +1114,8 @@
                     $('#left_credit').text('₹' + res.left_credit);
                     $('#left_credit_id').val(res.left_credit);
                     $('#creditpay-input').val('');
+                    
+                    $('#customer-balance-info').text('Current Balance: ' + res.left_credit + ' Cr');
                 });
 
                 // ✅ Apply discount
