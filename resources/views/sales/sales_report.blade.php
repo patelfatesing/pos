@@ -605,6 +605,11 @@
 
             $.get('/sales/add-sales-modal/' + branchId + '/' + shiftId, function(data) {
                 $('#addSalesContent').html(data);
+                
+                // Initialize Select2 after content is loaded
+                if (typeof window.initAddSalesSelect2 === 'function') {
+                    window.initAddSalesSelect2();
+                }
             });
         }
 

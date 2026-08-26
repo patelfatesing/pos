@@ -48,6 +48,43 @@
             margin-top: 20px;
         }
 
+        /* Clean regular price display */
+        .regular-price-label {
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 2px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .regular-price-highlight {
+            font-weight: 700;
+            color: #dc3545;
+            font-size: 0.75rem;
+            background: #fff5f5;
+            padding: 1px 8px;
+            border-radius: 4px;
+            border: 1px solid #fecaca;
+            display: inline-block;
+        }
+
+        /* Alternative: Clean badge style */
+        .reg-price-badge {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 5px 15px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 1px solid #fecaca;
+        }
+
+        .reg-price-badge .price {
+            font-weight: 700;
+            color: #dc2626;
+        }
+
+
         .total-summary h5 {
             font-size: 18px;
             margin-bottom: 10px;
@@ -621,6 +658,7 @@
                                 <td>
                                     <input type="number" step="0.01" name="items[${itemIndex}][sell_price]"
                                         class="form-control item-price" value="${discount}">
+                                    <small class="regular-price-label" style="display:none;">Regular: <span class="regular-price-highlight"></span></small>
                                 </td>
                                 <td>
                                     <input type="number" step="0.01" name="items[${itemIndex}][price]"
@@ -676,6 +714,7 @@
                 $('#invoice-items-body tr').each(function() {
 
                     const $row = $(this);
+                    updateRegularPriceDisplay($row);
                     const qty = parseFloat($row.find('.qty-input').val()) || 0;
                     const price = parseFloat($row.find('.item-price').val()) || 0;
 
@@ -782,6 +821,7 @@
                                             </td>
                                             <td>
                                                 <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                                <small class="regular-price-label"></small>
                                             </td>
                                             <td>
                                                 <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
@@ -818,6 +858,7 @@
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                        <small class="regular-price-label"></small>
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
@@ -852,6 +893,7 @@
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                        <small class="regular-price-label" style="display:none;">Regular: <span class="regular-price-highlight"></span></small>
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
@@ -874,6 +916,36 @@
                 // ✅ INVENTORY CHECK END
 
             });
+
+            // Helper to update regular price display (ONLY when party/commission selected)
+            function updateRegularPriceDisplay(row) {
+                const qtyInput = row.find('.qty-input');
+                const itemPriceInput = row.find('.item-price');
+                const regularPriceContainer = row.find('.regular-price-label');
+
+                const sellPrice = parseFloat(qtyInput.data('sell_price')) || 0;
+                const currentPrice = parseFloat(itemPriceInput.val()) || 0;
+
+                // Check if party or commission is selected
+                const partyId = $('#party-id').val();
+                const commissionId = $('#commission-id').val();
+                
+                const isPartySelected = partyId && partyId !== '';
+                const isCommissionSelected = commissionId && commissionId !== '';
+
+                // ONLY show when party OR commission is selected
+                if (isPartySelected || isCommissionSelected) {
+                    regularPriceContainer.show();
+                    // Just the badge style
+                    regularPriceContainer.html(`
+                        <span class="reg-price-badge">
+                            <span class="price">${sellPrice}</span>
+                        </span>
+                    `);
+                } else {
+                    regularPriceContainer.hide();
+                }
+            }
 
             // Remove product from invoice
             $(document).on('click', '.remove-item', function() {
