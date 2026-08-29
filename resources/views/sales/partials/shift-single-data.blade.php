@@ -18,7 +18,7 @@
             </h6>
 
             <a href="javascript:void(0)" class="btn btn-success"
-                onclick="openAddSalesModal({{ $shift->branch_id }}, {{ $shift->id }})">
+                onclick="openAddSalesModal({{ $shift->branch_id }}, {{ $shift->id }}, '{{ $shift->branch->name ?? '-' }}')">
                 + Add Sales
             </a>
         </div>
@@ -33,8 +33,8 @@
                         @else
                             <th>Commission User</th>
                         @endif
-                        <th>Discount</th>
                         <th>Sub Total</th>
+                        <th>Discount</th>
                         <th>Total</th>
                         <th class="text-end">Action</th>
                     </tr>
@@ -67,14 +67,14 @@
 
                             </td>
 
-                            {{-- DISCOUNT --}}
-                            <td>
-                                {{ number_format($rowDiscount, 2) }}
-                            </td>
-
                             {{-- SUB TOTAL --}}
                             <td>
                                 {{ number_format($rowSubTotal, 2) }}
+                            </td>
+
+                            {{-- DISCOUNT --}}
+                            <td>
+                                {{ number_format($rowDiscount, 2) }}
                             </td>
 
                             {{-- TOTAL --}}
@@ -162,10 +162,10 @@
                     <tr style="background:#f8f9fa;font-weight:bold;">
                         <td>Total</td>
                         <td>
-                            {{ number_format($discount, 2) }}
+                            {{ number_format($subTotal, 2) }}
                         </td>
                         <td>
-                            {{ number_format($subTotal, 2) }}
+                            {{ number_format($discount, 2) }}
                         </td>
                         <td>
                             ₹{{ number_format($total + ($sales->grand_total ?? 0), 2) }}

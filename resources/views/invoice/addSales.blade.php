@@ -333,6 +333,17 @@
             margin-bottom: 5px;
         }
 
+        .item-price {
+            min-width: 90px;
+        }
+
+        .regular-price-text {
+            font-weight: 700;
+            color: #dc3545;
+            font-size: 1.1em;
+            padding: 1px 4px;
+        }
+
         @media (max-width: 768px) {
             .order-details-body {
                 padding: 15px;
@@ -858,8 +869,10 @@
                                         <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" min="1" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                     </td>
                                     <td>
-                                        <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
-                                        <small class="regular-price-label"></small>
+                                        <div class="d-flex align-items-center">
+                                            <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                            <small class="regular-price-label" style="display:none;"></small>
+                                        </div>
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
@@ -893,8 +906,10 @@
                                         <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" min="1" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                     </td>
                                     <td>
-                                        <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
-                                        <small class="regular-price-label" style="display:none;">Regular: <span class="regular-price-highlight"></span></small>
+                                        <div class="d-flex align-items-center">
+                                            <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                            <small class="regular-price-label" style="display:none;"></small>
+                                        </div>
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
@@ -925,7 +940,6 @@
                 const regularPriceContainer = row.find('.regular-price-label');
 
                 const sellPrice = parseFloat(qtyInput.data('sell_price')) || 0;
-                const currentPrice = parseFloat(itemPriceInput.val()) || 0;
 
                 // Check if party or commission is selected
                 const partyId = $('#party-id').val();
@@ -937,10 +951,13 @@
                 // ONLY show when party OR commission is selected
                 if (isPartySelected || isCommissionSelected) {
                     regularPriceContainer.show();
-                    // Just the badge style
+                    
+                    // Add strikethrough if it's a party customer
+                    const style = isPartySelected ? 'text-decoration: line-through;' : '';
+                    
                     regularPriceContainer.html(`
-                        <span class="reg-price-badge">
-                            <span class="price">${sellPrice}</span>
+                        <span class="regular-price-text" style="color: red; margin-left: 5px; font-size: 1.1em; ${style}">
+                            ₹${sellPrice}
                         </span>
                     `);
                 } else {

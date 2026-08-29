@@ -203,6 +203,8 @@
     /* SweetAlert Top Layer */
     .swal2-container { z-index: 20000 !important; }
     .swal2-popup { z-index: 20001 !important; }
+
+
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -473,7 +475,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
 
-                <div class="modal-header bg-success text-white">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="addSalesModalTitle">Add Sales</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -597,15 +599,16 @@
             });
         }
 
-        function openAddSalesModal(branchId, shiftId) {
+        function openAddSalesModal(branchId, shiftId, branchName) {
 
+            $('#addSalesModalTitle').text('Add Transaction - #' + branchName);
             $('#addSalesContent').html('Loading...');
 
             $('#addSalesModal').modal('show');
 
             $.get('/sales/add-sales-modal/' + branchId + '/' + shiftId, function(data) {
                 $('#addSalesContent').html(data);
-                
+
                 // Initialize Select2 after content is loaded
                 if (typeof window.initAddSalesSelect2 === 'function') {
                     window.initAddSalesSelect2();
