@@ -42,10 +42,35 @@
 
         #items-table td {
             vertical-align: middle;
+            padding: 6px 8px;
+        }
+
+        .card-body {
+            padding: 15px 10px;
+        }
+
+        #invoice-items-form .card {
+            margin-bottom: 10px;
+        }
+
+        #product-table-card .card-body {
+            padding: 20px 10px 4px 10px;
         }
 
         .credit-section {
-            margin-top: 20px;
+            margin-top: 0;
+        }
+
+        #customer-balance-info {
+            margin-top: 2 !important;
+            line-height: 1.2;
+            min-height: 0;
+        }
+
+        #product-select-wrap,
+        #party-id,
+        #commission-id {
+            margin-bottom: 0;
         }
 
         /* Clean regular price display */

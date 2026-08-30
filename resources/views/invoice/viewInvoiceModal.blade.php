@@ -136,11 +136,27 @@
 <!-- Dynamic Action Buttons for Modal Header -->
 <div id="dynamicHeaderButtons" class="d-none">
     @if ($invoice->admin_status == 'verify' && $invoice->super_admin_status != 'verify')
-        <span class="mr-2 font-weight-bold" style="color: #FFE600;">Verify Sub Admin</span>
+        <span class="badge badge-pill mr-2 px-3 py-2" 
+          style="background: #fff8e1; 
+                 color: #f57f17; 
+                 border: 1.5px solid #ffb300; 
+                 font-size: 13px; 
+                 font-weight: 600; 
+                 border-radius: 20px;">
+        <i class="ri-shield-user-line mr-1" style="font-size: 14px;"></i> Verify Sub Admin
+    </span>
     @endif
 
     @if ($invoice->super_admin_status == 'verify')
-        <span class="mr-2 font-weight-bold" style="color: #FFE600;">Verify this invoice</span>
+        <span class="badge badge-pill mr-2 px-3 py-2" 
+          style="background: #e8f5e9; 
+                 color: #2e7d32; 
+                 border: 1.5px solid #66bb6a; 
+                 font-size: 13px; 
+                 font-weight: 600; 
+                 border-radius: 20px;">
+        <i class="ri-check-double-line mr-1" style="font-size: 14px;"></i> Verify this invoice
+    </span>
     @endif
 
     @if ($invoice->party_user_id != '')

@@ -39,10 +39,35 @@
 
     #items-table td {
         vertical-align: middle;
+        padding: 6px 8px;
+    }
+
+    .card-body {
+        padding: 15px 10px;
+    }
+
+    #invoice-items-form .card {
+        margin-bottom: 10px;
+    }
+
+    #product-table-card .card-body {
+        padding: 20px 10px 4px 10px;
     }
 
     .credit-section {
-        margin-top: 20px;
+        margin-top: 0;
+    }
+
+    #customer-balance-info {
+        margin-top: 2 !important;
+        line-height: 1.2;
+        min-height: 0;
+    }
+
+    #product-select-wrap,
+    #party-id,
+    #commission-id {
+        margin-bottom: 0;
     }
 
     /* Clean regular price display */
@@ -113,9 +138,8 @@
         flex: 1;
     }
 
-    /* ✅ Select2 styling fix for #add-sales-product-id */
     .select2-container {
-        min-width: 220px; /* base width */
+        min-width: 220px;
     }
 
     .select2-container .select2-selection--single {
@@ -181,7 +205,7 @@
 
     .order-details-header {
         background: #ff7e41;
-        padding: 10px 14px;
+        padding: 8px 14px;
         border-bottom: none;
     }
 
@@ -194,14 +218,15 @@
     }
 
     .order-details-body {
-        padding: 10px;
+        padding: 8px 10px;
     }
 
     .order-detail-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 2px 0;
+        padding: 1px 0;
+        line-height: 1.3;
         border-bottom: 1px solid #f1f3f5;
     }
 
@@ -281,13 +306,13 @@
 
     .credit-info {
         background: #f8f9fa;
-        padding: 12px 15px;
+        padding: 8px 12px;
         border-radius: 8px;
-        margin: 10px 0;
+        margin: 4px 0;
     }
 
     .credit-info .d-flex {
-        padding: 4px 0;
+        padding: 2px 0;
     }
 
     .payment-input-group {
@@ -319,7 +344,7 @@
 
     .section-divider {
         border-top: 2px dashed #dee2e6;
-        margin: 8px 0;
+        margin: 4px 0;
     }
 
     .item-price {
@@ -328,7 +353,7 @@
 
     @media (max-width: 768px) {
         .order-details-body {
-            padding: 15px;
+            padding: 12px;
         }
 
         .payment-method-group {

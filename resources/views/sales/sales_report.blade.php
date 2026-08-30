@@ -83,7 +83,7 @@
        INVOICE MODAL HEADER & ACTIONS
        ==================================== */
     #invoiceModal .modal-header {
-        background: #667eea;
+        background: #AFBEFA;
         padding: 14px 24px;
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;

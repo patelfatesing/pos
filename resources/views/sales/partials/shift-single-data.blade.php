@@ -36,7 +36,7 @@
                         <th>Sub Total</th>
                         <th>Discount</th>
                         <th>Total</th>
-                        <th class="text-end">Action</th>
+                        <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
 
