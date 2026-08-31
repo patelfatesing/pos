@@ -420,7 +420,7 @@
                             let selling = parseFloat(row.selling_price || 0);
                             let cost = parseFloat(row.cost_price || 0);
                             let allPrice = parseFloat(row.all_price || 0);
-                            let sold = parseFloat(row.out_qty || 0);
+                            let sold = parseFloat(row.sold_stock || 0);
 
                             totalQty += qty;
                             totalPrice += allPrice;

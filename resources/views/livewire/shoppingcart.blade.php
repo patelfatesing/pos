@@ -71,14 +71,34 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: calc(100vh - 80px);
-        }
+            min-height: calc(90vh - 80px);
+        }            
 
         @media screen and (max-resolution: 0.8dppx), (-webkit-max-device-pixel-ratio: 0.8) {
             #cartTable #cartTableBody {
                 max-height: 500px;
             }
         }
+
+        #cartTable {
+            height: auto !important;
+            min-height: unset !important;
+            margin-bottom: 0 !important;
+        }
+
+        #cartTable #cartTableBody {
+            display: table-row-group !important;
+            height: auto !important;
+            min-height: unset !important;
+        }
+
+        /* Empty row ની height fix કરવા માટે */
+        /* #cartTableBody tr:only-child,
+        #cartTableBody tr:only-child td {
+            height: 45px !important;
+            vertical-align: top !important;
+            padding-top: 12px !important;
+        } */
     </style>
     <!-- Top Bar -->
     @php
@@ -621,9 +641,11 @@
                                                         </tr>
                                                     @empty
                                                         <tr>
-                                                            <td colspan="5" class="text-center text-muted">No
-                                                                products found in the
-                                                                cart.</td>
+                                                            <td colspan="5" class="p-0 border-0">
+                                                                <div class="text-center text-muted py-3" style="min-height: auto; width: 100%;">
+                                                                    No products found in the cart.
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                     @endforelse
                                                 </tbody>

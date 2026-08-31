@@ -508,6 +508,7 @@ class StockTransferController extends Controller
             $idPart = str_pad($nextId, 2, '0', STR_PAD_LEFT);
 
             $transferNumber = "{$prefix}-{$datePart}-{$idPart}";
+            $transferredAt = now();
 
             // =====================================================
             // PRE STOCK VALIDATION
@@ -684,7 +685,7 @@ class StockTransferController extends Controller
                         'transfer_by'     => Auth::id(),
                         'shift_id'        => $currentShiftTo->id,
                         'from_shift_id'   => $currentShiftFrom->id,
-                        'transferred_at'  => now(),
+                        'transferred_at'  => $transferredAt,
                     ]);
 
                     $remainingQty -= $deductQty;
