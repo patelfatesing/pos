@@ -25,21 +25,33 @@ class HoldTransactions extends Component
 
     public function loadHoldTransactions()
     {
-        $today = Carbon::today();
+        $branch_id = auth()->user()->userinfo->branch->id ?? null;
 
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-        $currentShift = UserShift::whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
-        $start_date = @$currentShift->start_time; // your start date (set manually)
-        $end_date = $currentShift->end_date ?? date('Y-m-d H:i:s'); // your start date (set manually)
+        $currentShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id, "pending");
+
+        if (!$currentShift) {
+            $currentShift = UserShift::where(['user_id' => auth()->user()->id])
+                ->where(['branch_id' => $branch_id])
+                ->where(['status' => "pending"])
+                ->latest('id')
+                ->first();
+        }
+
+        if (!$currentShift) {
+            $this->holdTransactions = [];
+            return;
+        }
+
+        $start_date = $currentShift->start_time;
+        $end_date   = $currentShift->end_time ?? date('Y-m-d H:i:s');
 
         $this->holdTransactions = Invoice::with(['partyUser', 'commissionUser'])
-            ->where(['user_id' => auth()->user()->id])
-            ->where(['branch_id' => $branch_id])
+            ->where('user_id', auth()->user()->id)
+            ->where('branch_id', $branch_id)
             ->where('status', 'Hold')
             ->whereBetween('created_at', [$start_date, $end_date])
+            ->latest('id')
             ->get();
-        // $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();
-
     }
 
     public function resumeTransaction($id, $commission_user_id = "", $party_user_id = "")

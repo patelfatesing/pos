@@ -86,7 +86,7 @@ class ShiftCloseModal extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'openCloseModal' => 'openModal', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'setCapturedImage'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'openCloseModal' => 'openModal', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'setCapturedImage', 'removeHold'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -152,6 +152,21 @@ class ShiftCloseModal extends Component
 
     public $online_amount = 0;
 
+    public function getHoldCount()
+    {
+        if (!$this->currentShift) return 0;
+        
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $start_date = $this->currentShift->start_time;
+        $end_date = $this->currentShift->end_time;
+        
+        return Invoice::where(['user_id' => auth()->user()->id])
+            ->where(['branch_id' => $branch_id])
+            ->where('status', 'Hold')
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->count();
+    }
+
     public function setCapturedImage($image = "")
     {
         $this->capturedImage = $image;
@@ -172,7 +187,7 @@ class ShiftCloseModal extends Component
     }
 
     public function removeHold()
-    {
+    {    
         $date = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
@@ -180,6 +195,7 @@ class ShiftCloseModal extends Component
             ->where(['branch_id' => $branch_id])
             ->where(['status' => "hold"])
             ->delete();
+        $this->dispatch('close-hold-modal');
         $this->dispatch('notiffication-sucess', ['message' => 'Hold removed. You can now close the shift.']);
     }
 

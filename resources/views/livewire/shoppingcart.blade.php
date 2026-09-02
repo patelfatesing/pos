@@ -1,4 +1,105 @@
 <div class="container-fluid">
+    <style>
+        .btn-remove-hold {
+            background-color: #fff;
+            color: #dc3545;
+            border: 1.5px solid #dc3545;
+            border-radius: 30px;
+            padding: 6px 18px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .btn-remove-hold:hover {
+            background-color: #dc3545;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(220,53,69,0.35);
+        }
+
+        .btn-remove-hold:active {
+            transform: scale(0.97);
+        }
+
+        .btn-remove-hold i {
+            font-size: 0.9rem;
+        }
+
+        /* Default: Remove Hold button hidden (sidebar / normal View Hold flow) */
+        #holdTransactionsModal .btn-remove-hold {
+            display: none;
+        }
+
+        /* Only shown when opened via popup 1's Remove Hold button */
+        #holdTransactionsModal.via-remove-hold .btn-remove-hold {
+            display: inline-flex;
+        }
+
+        #holdTransactionsModal.via-remove-hold .action-buttons-block .btn-resume-hold,
+        #holdTransactionsModal.via-remove-hold .action-buttons-block .btn-delete-hold {
+            display: none !important;
+        }
+
+        /* Cart Table Wrapper & Body Flex / Auto-Fill */
+        #cartTableWrapper {
+            max-height: calc(100vh - 320px);
+            overflow-y: auto;
+        }
+
+        /* Fullscreen Mode Fix */
+        :fullscreen #cartTableWrapper,
+        :-webkit-full-screen #cartTableWrapper {
+            max-height: calc(100vh - 320px) !important;
+            min-height: calc(100vh - 320px) !important;
+        }
+
+        /* Table body scroll fix */
+        #cartTable #cartTableBody {
+            display: table-row-group;
+        }
+
+        /* Spacing fixes around bottom footer */
+        .qty-payble-table {
+            margin-top: auto;
+        }
+
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: calc(90vh - 80px);
+        }            
+
+        @media screen and (max-resolution: 0.8dppx), (-webkit-max-device-pixel-ratio: 0.8) {
+            #cartTable #cartTableBody {
+                max-height: 500px;
+            }
+        }
+
+        #cartTable {
+            height: auto !important;
+            min-height: unset !important;
+            margin-bottom: 0 !important;
+        }
+
+        #cartTable #cartTableBody {
+            display: table-row-group !important;
+            height: auto !important;
+            min-height: unset !important;
+        }
+
+        /* Empty row ની height fix કરવા માટે */
+        /* #cartTableBody tr:only-child,
+        #cartTableBody tr:only-child td {
+            height: 45px !important;
+            vertical-align: top !important;
+            padding-top: 12px !important;
+        } */
+    </style>
     <!-- Top Bar -->
     @php
         $this->cashAmount = round_up_to_nearest_10($this->cashAmount) ?? 0;
@@ -409,8 +510,7 @@
                                 <!-- Product Table & Calculator -->
                                 <div class="row mt-2">
                                     <div class="col-md-12">
-                                        <div class="table-responsive">
-
+                                        <div class="table-responsive" id="cartTableWrapper">
                                             <table class="table table-bordered product-table" id="cartTable">
                                                 <thead class="table-info">
                                                     <tr>
@@ -423,7 +523,7 @@
                                                         </th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
+                                                <tbody id="cartTableBody">
                                                     @forelse($itemCarts as $item)
                                                         @php
                                                             $total = @$item->product->sell_price * $item->quantity;
@@ -432,7 +532,8 @@
                                                             $finalAmount = $total - $commission - $party;
                                                         @endphp
                                                         <tr
-                                                            class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
+                                                            class="{{ $this->activeItemId === $item->id ? 'active' : '' }} cart-item"
+                                                            data-item-id="{{ $item->id }}">
                                                             <td class="col-7 col-sm-5"
                                                                 wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
                                                                 style="cursor:pointer">
@@ -540,9 +641,11 @@
                                                         </tr>
                                                     @empty
                                                         <tr>
-                                                            <td colspan="5" class="text-center text-muted">No
-                                                                products found in the
-                                                                cart.</td>
+                                                            <td colspan="5" class="p-0 border-0">
+                                                                <div class="text-center text-muted py-3" style="min-height: auto; width: 100%;">
+                                                                    No products found in the cart.
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                     @endforelse
                                                 </tbody>
@@ -729,9 +832,17 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header custom-modal-header">
-                    <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }}
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="d-flex align-items-center" style="gap: 15px;">
+                        <h5 class="modal-title mb-0" id="holdModalLabel">
+                            {{ __('messages.hold_transactions') }}
+                        </h5>
+                        <button type="button" wire:click="$dispatch('removeHold')"
+                            class="btn btn-remove-hold" title="Remove Hold">
+                            <i class="fa fa-trash-o"></i> Remove Hold
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn-close close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" onclick="closeHoldModal()"></button>
                 </div>
                 <div class="modal-body">
                     @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
@@ -2165,6 +2276,86 @@
 </div>
 
 <script>
+    function closeHoldModal() {
+        $('#holdTransactionsModal').modal('hide');
+
+        const modalEl = document.getElementById('holdTransactionsModal');
+        if (modalEl) {
+            modalEl.style.display = 'none';
+            modalEl.classList.remove('show');
+            modalEl.classList.remove('via-remove-hold'); // reset flag
+            modalEl.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function confirmRemoveHold() {
+        Swal.fire({
+            title: 'Remove all hold transactions?',
+            text: 'This action cannot be reverted!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, remove it',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Livewire.dispatch('removeHoldTransactions');
+            }
+        });
+    }
+
+    let isInitialLoad = true;
+    function scrollToNewProduct() {
+        const tableWrapper = document.getElementById('cartTableWrapper');
+        const tableBody = document.getElementById('cartTableBody');
+        
+        if (!tableWrapper || !tableBody) return;
+        
+        const rows = tableBody.querySelectorAll('tr.cart-item');
+        if (rows.length === 0) return;
+        
+        const lastRow = rows[rows.length - 1];
+        
+        setTimeout(() => {
+            tableWrapper.scrollTop = tableWrapper.scrollHeight;
+            lastRow.scrollIntoView({ block: 'end', behavior: 'smooth' });
+        }, 50);
+    }
+
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('product-added', () => {
+            scrollToNewProduct();
+        });
+    });
+
+    const observer = new MutationObserver((mutations) => {
+        if (isInitialLoad) return; 
+
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.target.id === 'cartTableBody') {
+                if (mutation.addedNodes.length > 0) {
+                    const hasNewCartItem = Array.from(mutation.addedNodes).some(node => 
+                        node.nodeType === 1 && node.classList.contains('cart-item')
+                    );
+                    if (hasNewCartItem) {
+                        scrollToNewProduct();
+                    }
+                }
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.getElementById('cartTableBody');
+        if (tableBody) {
+            observer.observe(tableBody, { childList: true, subtree: false });
+        }
+        
+        setTimeout(() => {
+            isInitialLoad = false;
+        }, 500);
+    });
+
     (function() {
 
         // Use capture phase so we receive the click even if inner handlers call stopPropagation
@@ -2266,7 +2457,7 @@
 
             startZero.addEventListener('change', updateAmountByStartZero);
 
-            // Run once on load in case it’s pre-checked
+            // Run once on load in case it's pre-checked
 
             updateAmountByStartZero();
 
@@ -2550,8 +2741,7 @@
     window.addEventListener('triggerPrint', event => {
         $('#commissionUser').val(null).trigger('change');
         $('#partyUser').val(null).trigger('change');
-        // Hide preview or image if any
-        const el = document.getElementsByClassName('lastsavepic')[0];
+        // Hide preview or image if any        const el = document.getElementsByClassName('lastsavepic')[0];
         if (el) {
             el.classList.add('d-none');
         }
@@ -2903,6 +3093,10 @@
         $('#holdTransactionsModal').on('show.bs.modal', function() {
             Livewire.dispatch('loadHoldTransactions');
         });
+
+        $('#holdTransactionsModal').on('hidden.bs.modal', function() {
+            this.classList.remove('via-remove-hold'); // reset flag on close
+        });
     });
 
     $(document).ready(function() {
@@ -3085,8 +3279,24 @@
     });
 
     window.addEventListener('notiffication-error', (event) => {
-        // Error Example
-        showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
+        // Normalizes Livewire v2 (array) and Livewire v3 (object/array) event payloads
+        const message = event.detail?.message || event.detail?.[0]?.message || 'Item is inactive. Please contact the administrator.';
+        
+        Swal.fire({
+            title: 'LiquorHub!',
+            text: message,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            timer: 3000,
+            timerProgressBar: true,
+            backdrop: true,
+            allowOutsideClick: false,
+            customClass: {
+                popup: 'small-alert'
+            }
+        }).then(() => {
+            forceFocusBarcode();
+        });
     });
 
     window.addEventListener('notiffication-error-close-shift', (event) => {
@@ -3207,7 +3417,8 @@
         const modal = document.getElementById('holdTransactionsModal');
         if (modal) {
             modal.style.display = 'none';
-            modal.classList.remove('show'); // Optional: remove show class
+            modal.classList.remove('show');
+            modal.classList.remove('via-remove-hold'); // reset flag
             modal.setAttribute('aria-hidden', 'true');
         }
 

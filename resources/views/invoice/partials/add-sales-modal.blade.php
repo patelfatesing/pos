@@ -2,10 +2,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-    input[type=number] {
-        width: 90px !important;
-    }
-
     .price-stack {
         display: flex;
         flex-direction: column;
@@ -24,8 +20,86 @@
         font-size: 90%;
     }
 
+    /* Snug input controls inside table cells */
+    .qty-input,
+    .item-price,
+    .item-total-input {
+        width: 100% !important;
+        max-width: 95px;
+        margin: 0 auto;
+    }
+
+    /* Column width optimization */
+    #items-table th:nth-child(1), #items-table td:nth-child(1) { width: 40px; text-align: center; }
+    #items-table th:nth-child(2), #items-table td:nth-child(2) { width: auto; } /* Expand Item Column */
+    #items-table th:nth-child(3), #items-table td:nth-child(3) { width: 105px; text-align: center; }
+    #items-table th:nth-child(4), #items-table td:nth-child(4) { width: 115px; text-align: center; }
+    #items-table th:nth-child(5), #items-table td:nth-child(5) { width: 115px; text-align: center; }
+    #items-table th:nth-child(6), #items-table td:nth-child(6) { width: 70px; text-align: center; }
+
+    #items-table td {
+        vertical-align: middle;
+        padding: 6px 8px;
+    }
+
+    .card-body {
+        padding: 15px 10px;
+    }
+
+    #invoice-items-form .card {
+        margin-bottom: 10px;
+    }
+
+    #product-table-card .card-body {
+        padding: 20px 10px 4px 10px;
+    }
+
     .credit-section {
-        margin-top: 20px;
+        margin-top: 0;
+    }
+
+    #customer-balance-info {
+        margin-top: 2 !important;
+        line-height: 1.2;
+        min-height: 0;
+    }
+
+    #product-select-wrap,
+    #party-id,
+    #commission-id {
+        margin-bottom: 0;
+    }
+
+    /* Clean regular price display */
+    .regular-price-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 5px;
+        display: block;
+        font-weight: 500;
+    }
+
+    .regular-price-text {
+        font-weight: 700;
+        color: #dc3545;
+        font-size: 1.1em;
+        padding: 1px 4px;
+    }
+
+    /* Alternative: Clean badge style */
+    .reg-price-badge {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 5px 15px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border: 1px solid #fecaca;
+    }
+
+    .reg-price-badge .price {
+        font-weight: 700;
+        color: #dc2626;
     }
 
     .total-summary h5 {
@@ -35,6 +109,24 @@
 
     #add-product-btn {
         white-space: nowrap;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background-color: #5bbd88;
+        border-color: #5bbd88;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 6px 10px;
+    }
+
+    #new-product-qty {
+        height: 38px;
+        border-radius: 6px !important;
+        text-align: center;
+        font-size: 13px;
+        border: 1px solid #ced4da;
     }
 
     #payment-fields {
@@ -45,22 +137,250 @@
     #payment-fields .payment-input {
         flex: 1;
     }
+
+    .select2-container {
+        min-width: 220px;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 36px !important;
+        padding-left: 12px;
+        padding-right: 45px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Arrow: pointer-events none so it never blocks the clear (x) icon underneath */
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 36px !important;
+        right: 6px;
+        pointer-events: none;
+    }
+
+    /* Clear (x) icon: given its own space, higher z-index, and real click target */
+    .select2-container .select2-selection--single .select2-selection__clear {
+        position: absolute;
+        right: 28px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        cursor: pointer;
+        pointer-events: auto;
+    }
+
+    .select2-dropdown {
+        width: auto !important;
+        min-width: 100%;
+        max-width: 480px;
+        z-index: 99999 !important;
+    }
+
+    .select2-results__option {
+        white-space: nowrap;
+        padding-right: 20px;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        padding: 6px 8px;
+    }
+
+    #new-product-qty-wrap {
+        margin-left: 0;
+    }
+
+    .order-details-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+
+    .order-details-header {
+        background: #ff7e41;
+        padding: 8px 14px;
+        border-bottom: none;
+    }
+
+    .order-details-header h5 {
+        color: #ffffff;
+        margin: 0;
+        font-weight: 600;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+    }
+
+    .order-details-body {
+        padding: 8px 10px;
+    }
+
+    .order-detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1px 0;
+        line-height: 1.3;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .order-detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-detail-item .label {
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .order-detail-item .value {
+        color: #2d3748;
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .order-detail-item .value.highlight {
+        color: #4a6cf7;
+    }
+
+    .order-detail-item .value.danger {
+        color: #dc3545;
+    }
+
+    .order-detail-item .value.success {
+        color: #28a745;
+    }
+
+    .total-amount-box {
+        background: #32BDEA;
+        padding: 5px 7px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3px;
+    }
+
+    .total-amount-box h6 {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .total-amount-box h3 {
+        color: #ffffff;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .payment-method-group {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .payment-method-group .form-check {
+        margin: 0;
+        padding-left: 17px;
+    }
+
+    .payment-method-group .form-check-input {
+        margin-top: 2px;
+    }
+
+    .payment-method-group .form-check-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .credit-info {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin: 4px 0;
+    }
+
+    .credit-info .d-flex {
+        padding: 2px 0;
+    }
+
+    .payment-input-group {
+        background: #f8f9fa;
+        padding: 5px 10px;
+        border-radius: 8px;
+        margin-top: 6px;
+    }
+
+    .payment-input-group .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 4px;
+    }
+
+    .payment-input-group .form-control {
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+
+    .payment-input-group .form-control:focus {
+        border-color: #4a6cf7;
+        box-shadow: 0 0 0 0.2rem rgba(74, 108, 247, 0.1);
+    }
+
+    .section-divider {
+        border-top: 2px dashed #dee2e6;
+        margin: 4px 0;
+    }
+
+    .item-price {
+        min-width: 90px;
+    }
+
+    @media (max-width: 768px) {
+        .order-details-body {
+            padding: 12px;
+        }
+
+        .payment-method-group {
+            gap: 10px;
+        }
+
+        .total-amount-box {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .total-amount-box h3 {
+            margin-top: 8px;
+        }
+    }
 </style>
-
-<div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <div>
-        <h4 class="mb-0">Add Transaction - #{{ $branch_data->name }}</h4>
-    </div>
-
-</div>
 
 <form id="invoice-items-form" method="POST" action="{{ route('sales.invoice.insert-sale') }}">
     @csrf
     <div class="card mb-3">
         <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-3">
-                    <select id="new-product-id" class="form-control">
+            <div class="d-flex flex-nowrap align-items-center" style="gap: 12px; overflow-x: auto;">
+
+                <!-- Select Product -->
+                <div id="product-select-wrap" style="flex: 0 1 auto; min-width: 0;">
+                    <select id="add-sales-product-id" class="form-control">
                         <option value="">Select Product</option>
                         @foreach ($allProducts as $product)
                             <option value="{{ $product->id }}" data-name="{{ $product->name }}"
@@ -73,20 +393,28 @@
                         @endforeach
                     </select>
                 </div>
+
                 <input type="hidden" name="branch_id" value="{{ $branch_data->id }}">
                 <input type="hidden" name="type" value="{{ $type }}">
                 <input type="hidden" name="shift_id" value="{{ $Shift_data->id }}">
-                <div class="col-md-1 mr-2">
-                    <input type="number" min="1" id="new-product-qty" class="form-control" placeholder="Qty">
+
+                <!-- Qty Input & Add Item Button with Gap -->
+                <div class="d-flex align-items-center" style="gap: 10px; flex: 0 0 auto;">
+                    <div id="new-product-qty-wrap" style="flex: 0 0 75px;">
+                        <input type="number" min="1" id="new-product-qty" class="form-control" placeholder="Qty">
+                    </div>
+                    <div style="flex: 0 0 auto;">
+                        <button type="button" class="btn btn-success" id="add-product-btn">
+                            Add Item
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-1">
-                    <button type="button" class="btn btn-success mr-2" id="add-product-btn">
-                        Add Item
-                    </button>
-                </div>
-                <div class="col-md-3 d-flex">
-                </div>
-                <div class="col-md-3">
+
+                <!-- Spacer -->
+                <div style="flex: 1 1 auto;"></div>
+
+                <!-- Party / Commission Dropdown -->
+                <div style="flex: 0 0 auto; min-width: 200px;">
                     @if ($branch_data->id == 1)
                         <select id="party-id" class="form-control" name="party_user_id">
                             <option value="">Select Party Customer</option>
@@ -97,6 +425,7 @@
                                 </option>
                             @endforeach
                         </select>
+                        <div id="customer-balance-info" style="margin-top: 2px; font-size: 0.9em; font-weight: bold; color: #dc3545;"></div>
                     @else
                         <select id="commission-id" class="form-control" name="commission_user_id">
                             <option value="">Select Commission Customer</option>
@@ -108,23 +437,23 @@
                             @endforeach
                         </select>
                     @endif
-                    <p id="party-current-balance" style="font-style:italic;color:#555;"></p>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="product-table-card">
         <div class="card-body table-responsive">
             <table class="table table-bordered" id="items-table">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Item</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Total</th>
-                        <th>Action</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: center;">Price</th>
+                        <th style="text-align: center;">Total</th>
+                        <th style="text-align: center;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="invoice-items-body"></tbody>
@@ -132,77 +461,107 @@
         </div>
     </div>
 
-    <div class="row mb-0">
+    <!-- Order Details Section -->
+    <div class="row mb-3">
         <div class="offset-lg-8 col-lg-4">
-            <div class="or-detail rounded">
-                <div class="p-3">
-                    <h5 class="mb-3">Order Details</h5>
+            <div class="order-details-card">
+                <div class="order-details-header">
+                    <h5><i class="fas fa-shopping-cart"></i> Order Details</h5>
+                </div>
+                <div class="order-details-body">
                     <input type="hidden" id="total_discount" name="total_discount" value="0">
                     <input type="hidden" id="gr_total" name="sub_total" value="0">
                     <input type="hidden" id="sub_total" name="total" value="0">
                     <input type="hidden" id="left_credit_id" value="0">
 
-                    <div class="mb-2 d-flex justify-content-between">
-                        <h6>Sub Total</h6>
-                        <p id="total"></p>
+                    <!-- Sub Total -->
+                    <div class="order-detail-item">
+                        <span class="label">Sub Total</span>
+                        <span class="value highlight" id="total">₹0.00</span>
                     </div>
-                    <div class="mb-2 d-flex justify-content-between">
-                        <h6 class="credit-section">Party Deduction</h6>
-                        <h6 class="commission-section">Commission Deduction</h6>
-                        <p id="discount-total">₹</p>
-                    </div>
-                    <div class="credit-section">
-                        <div class="mb-2 d-flex justify-content-between">
-                            <h6>Credit Limit</h6>
-                            <p id="credit-limit"></p>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <h6>Left Limit</h6>
-                            <p id="left_credit"></p>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <h6>Credit Used (Invoice)</h6>
-                            <p>₹<input type="number" name="creditpay" id="creditpay-input" min="0"
-                                    step="0.1" class="form-control d-inline-block"
-                                    style="width: 120px; display: inline;">
-                                <small id="creditpay-error" class="text-danger d-block" style="display:none;"></small>
-                            </p>
-                        </div>
-                    </div>
-                    <!-- Payment Method Radio Buttons -->
-                    <div class="mb-2 d-flex justify-content-between">
-                        <label><strong>Payment Method</strong></label>
-                        <div>
-                            <input type="radio" id="cash-option" name="payment_method" value="cash" checked>
-                            <label for="cash-option">Cash</label>
-                            <input type="radio" id="upi-option" name="payment_method" value="online">
-                            <label for="upi-option">UPI</label>
-                            <input type="radio" id="cash-upi-option" name="payment_method" value="cashupi">
-                            <label for="cash-upi-option">Cash + UPI</label>
-                            <input type="radio" id="credit-option" name="payment_method" value="credit">
 
-                            <label for="credit-option">Credit</label>
+                    <!-- Discount Section -->
+                    <div class="order-detail-item">
+                        <span class="label">
+                            <span class="credit-section" style="display:none;">Party Deduction</span>
+                            <span class="commission-section" style="display:none;">Commission Deduction</span>
+                        </span>
+                        <span class="value danger" id="discount-total">₹0.00</span>
+                    </div>
+
+                    <!-- Credit Section -->
+                    <div class="credit-section" style="display:none;">
+                        <div class="section-divider"></div>
+                        <div class="credit-info">
+                            <div class="d-flex justify-content-between">
+                                <span class="label">Credit Limit</span>
+                                <span class="value" id="credit-limit">₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="label">Left Limit</span>
+                                <span class="value success" id="left_credit">₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="label">Credit Used</span>
+                                <div>
+                                    <input type="number" name="creditpay" id="creditpay-input"
+                                        min="0" step="0.1"
+                                        class="form-control d-inline-block"
+                                        style="width: 120px; display: inline;">
+                                    <small id="creditpay-error" class="text-danger d-block"
+                                        style="display:none;"></small>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Cash and UPI Inputs Section -->
+                    <!-- Payment Method -->
+                    <div class="section-divider"></div>
+                    <div>
+                        <span class="label d-block" style="font-weight: 600; color: #495057;">Payment Method</span>
+                        <div class="payment-method-group">
+                            <div class="form-check">
+                                <input type="radio" id="cash-option" name="payment_method" value="cash"
+                                    checked>
+                                <label class="form-check-label" for="cash-option">Cash</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" id="upi-option" name="payment_method" value="online">
+                                <label class="form-check-label" for="upi-option">UPI</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" id="cash-upi-option" name="payment_method"
+                                    value="cashupi">
+                                <label class="form-check-label" for="cash-upi-option">Cash + UPI</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" id="credit-option" name="payment_method"
+                                    value="credit">
+                                <label class="form-check-label" for="credit-option">Credit</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cash and UPI Inputs -->
                     <div id="payment-fields">
-                        <div id="cash-field" class="payment-input">
-                            <h6>Cash</h6>
+                        <div id="cash-field" class="payment-input-group">
+                            <label class="form-label">Cash Amount</label>
                             <input type="number" id="cash-amount" class="form-control" min="0"
                                 step="1" readonly name="cash_amount">
                         </div>
 
-                        <div id="upi-field" class="payment-input" style="display: none;">
-                            <h6>UPI</h6>
+                        <div id="upi-field" class="payment-input-group" style="display: none;">
+                            <label class="form-label">UPI Amount</label>
                             <input type="number" id="upi-amount" class="form-control" name="upi_amount"
                                 min="0" step="1" readonly>
                         </div>
                     </div>
-                </div>
-                <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                    <h6>Total</h6>
-                    <h3 class="text-primary font-weight-700" id="grand-total"></h3>
+
+                    <!-- Total -->
+                    <div class="total-amount-box mt-3">
+                        <h6>Total</h6>
+                        <h3 id="grand-total">₹0.00</h3>
+                    </div>
                 </div>
             </div>
         </div>
@@ -210,8 +569,7 @@
 
     <div class="d-flex justify-content-end mt-3 total-summary mb-3">
         <div>
-
-            <button type="submit" class="btn btn-success">Save Invoice Items</button>
+            <button type="submit" class="btn btn-success">Save Invoice</button>
         </div>
     </div>
 
@@ -222,54 +580,216 @@
         document.getElementById('vendorForm').submit();
     }
 
-    window.oldItems = @json(old('items', []));
-    window.itemIndex = window.itemIndex || 0;
+    (function() {
 
-    $(document).ready(function() {
+        let oldItems = @json(old('items', []));
+        let itemIndex = 0; // ✅ declared before use (fixes ReferenceError)
 
-        if (oldItems && Object.keys(oldItems).length > 0) {
+        $(function() {
 
-            Object.keys(oldItems).forEach(function(index) {
+            // ✅ Named function to initialize Select2
+            window.initAddSalesSelect2 = function() {
+                const $sel = $('#add-sales-product-id');
+                if ($sel.length) {
+                    if ($sel.hasClass('select2-hidden-accessible')) {
+                        $sel.select2('destroy');
+                    }
 
-                let item = oldItems[index];
+                    $sel.select2({
+                        placeholder: 'Select Product',
+                        allowClear: true,
+                        width: 'resolve',
+                        dropdownAutoWidth: true,
+                        dropdownParent: $sel.closest('.modal').length ?
+                            $sel.closest('.modal') : $(document.body)
+                    });
 
-                let productId = item.product_id;
-                let name = item.name;
-                let qty = parseInt(item.quantity) || 1;
-                let price = parseFloat(item.sell_price) || 0;
-                let mrp = parseFloat(item.mrp) || 0;
-                let discount = parseFloat(item.discount ?? price);
-                let category = item.category;
-                let subcategory = item.subcategory;
+                    resizeProductSelect();
+                }
+            };
 
-                const row = `
+            // ✅ Resize helper for #add-sales-product-id select2 box
+            let resizeTimer;
+            function resizeProductSelect() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    const $sel = $('#add-sales-product-id');
+                    const text = $sel.find('option:selected').text().trim() || $sel.data('placeholder') ||
+                        'Select Product';
+
+                    let $ruler = $('#product-select-ruler');
+                    if ($ruler.length === 0) {
+                        $ruler = $('<span id="product-select-ruler"></span>').css({
+                            position: 'absolute',
+                            visibility: 'hidden',
+                            whiteSpace: 'nowrap',
+                            fontSize: '14px'
+                        }).appendTo('body');
+                    }
+
+                    $ruler.text(text);
+                    const textWidth = $ruler.width();
+
+                    const minWidth = 220;
+                    const maxWidth = 420;
+                    const newWidth = Math.min(maxWidth, Math.max(minWidth, textWidth + 70));
+
+                    $sel.next('.select2-container').css('width', newWidth + 'px')
+                        .find('.select2-selection__rendered').attr('title', text);
+                }, 100);
+            }
+
+            // Initialize
+            initAddSalesSelect2();
+
+            $('#add-sales-product-id').on('select2:select select2:unselect select2:clear', function() {
+                resizeProductSelect();
+            });
+
+            const storeId = {{ $branch_data->id }};
+
+            let creditLimit = 0;
+            let cashAmount = 0;
+            let upiAmount = 0;
+            let grandTotal = 0;
+            let totalSellPrice = 0;
+            let discountTotal = 0;
+
+            // Initially hide both
+            $(".credit-section").hide();
+            $(".commission-section").hide();
+
+            // Show based on branch
+            if (storeId == 1) {
+                $('#party-id').show();
+                $('#commission-id').hide();
+            } else {
+                $('#party-id').hide();
+                $('#commission-id').show();
+            }
+
+            // Update the totals dynamically
+            function updateTotals() {
+
+                grandTotal = 0;
+                totalSellPrice = 0;
+                discountTotal = 0;
+
+                const partyId = $('#party-id').val();
+                const commissionId = $('#commission-id').val();
+
+                $('#invoice-items-body tr').each(function() {
+
+                    const $row = $(this);
+                    updateRegularPriceDisplay($row);
+                    const qty = parseFloat($row.find('.qty-input').val()) || 0;
+                    const price = parseFloat($row.find('.item-price').val()) || 0;
+
+                    const sell_price = parseFloat($row.find('.qty-input').data('sell_price')) || 0;
+                    const discount = parseFloat($row.find('.qty-input').data('discount')) || sell_price;
+
+                    const rowTotal = Math.ceil(qty * price);
+                    $row.find('.item-total-input').val(rowTotal);
+                    const disAmt = (sell_price - discount) * qty;
+
+
+                    totalSellPrice += rowTotal;
+                    discountTotal += disAmt;
+                    grandTotal += rowTotal;
+                });
+
+                const grossTotal = totalSellPrice + discountTotal;
+                $('#total').text('₹' + Math.ceil(grossTotal));
+                $('#grand-total').text('₹' + Math.ceil(grandTotal));
+
+                if (partyId || commissionId) {
+                    $('#discount-total').text('₹' + discountTotal.toFixed(2));
+                } else {
+                    $('#discount-total').text('₹0.00');
+                }
+
+                $('#total_discount').val(discountTotal);
+                $('#gr_total').val(totalSellPrice);
+
+                $('#sub_total').val(grandTotal);
+
+                $('#cash-amount').val(Math.ceil(grandTotal));
+            }
+
+            // Helper to update regular price display (ONLY when party/commission selected)
+            function updateRegularPriceDisplay(row) {
+                const qtyInput = row.find('.qty-input');
+                const regularPriceContainer = row.find('.regular-price-label');
+
+                const sellPrice = parseFloat(qtyInput.data('sell_price')) || 0;
+
+                // Check if party or commission is selected
+                const partyId = $('#party-id').val();
+                const commissionId = $('#commission-id').val();
+                
+                const isPartySelected = partyId && partyId !== '';
+                const isCommissionSelected = commissionId && commissionId !== '';
+
+                // ONLY show when party OR commission is selected
+                if (isPartySelected || isCommissionSelected) {
+                    regularPriceContainer.show();
+                    
+                    // Add strikethrough if it's a party customer
+                    const style = isPartySelected ? 'text-decoration: line-through;' : '';
+                    
+                    regularPriceContainer.html(`
+                        <span class="regular-price-text" style="color: red; margin-left: 5px; font-size: 1.1em; min-width: 40px; display: inline-block; ${style}">
+                            ₹${sellPrice}
+                        </span>
+                    `);
+                } else {
+                    regularPriceContainer.hide();
+                }
+            }
+
+            if (oldItems && Object.keys(oldItems).length > 0) {
+
+                Object.keys(oldItems).forEach(function(index) {
+
+                    let item = oldItems[index];
+
+                    let productId = item.product_id;
+                    let name = item.name;
+                    let qty = parseInt(item.quantity) || 1;
+                    let price = parseFloat(item.sell_price) || 0;
+                    let mrp = parseFloat(item.mrp) || 0;
+                    let discount = parseFloat(item.discount ?? price);
+                    let category = item.category;
+                    let subcategory = item.subcategory;
+
+                    const row = `
                             <tr>
                                 <td>#</td>
                                 <td>${name}
                                     <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
                                     <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
-                                    <input type="hidden" name="items[${itemIndex}][sell_price]" value="${price}">
                                     <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
                                     <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
                                     <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
                                     <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
-                                    <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(price * qty)}">
                                 </td>
                                 <td>
                                     <input type="number" name="items[${itemIndex}][quantity]" 
                                         class="form-control qty-input"
-                                        value="${qty}" 
-                                        data-price="${price}" 
+                                        value="${qty}" min="1"
                                         data-sell_price="${price}" 
                                         data-discount="${discount}" data-mrp="${mrp}">
                                 </td>
                                 <td>
-                                    <div class="price-stack">
-                                        <span class="discount">₹${discount}</span>
-                                        <span class="sell_price">₹${price}</span>
+                                    <div class="d-flex align-items-center">
+                                        <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${discount}" style="width: 100px;">
+                                        <small class="regular-price-label" style="display:none;"></small>
                                     </div>
                                 </td>
-                                <td class="item-total"><b>₹${Math.ceil(price * qty)}</b></td>
+                                <td>
+                                    <input type="number" step="0.01" name="items[${itemIndex}][price]"
+                                        class="form-control item-total-input" value="${Math.ceil(discount * qty)}">
+                                </td>
                                 <td>
                                     <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" 
                                         class="btn btn-sm remove-item">
@@ -277,611 +797,513 @@
                             </tr>
                         `;
 
-                $('#invoice-items-body').append(row);
+                    $('#invoice-items-body').append(row);
+                    itemIndex++;
+                });
 
-                itemIndex++;
-            });
-
-            updateTotals();
-        }
-
-
-        const storeId = {{ $branch_data->id }};
-
-        let creditLimit = 0;
-        let cashAmount = 0;
-        let upiAmount = 0;
-        let grandTotal = 0;
-        let totalSellPrice = 0;
-        let discountTotal = 0;
-
-        // Initially hide both
-        $(".credit-section").hide();
-        $(".commission-section").hide();
-
-        // Show based on branch
-        if (storeId == 1) {
-            $('#party-id').show();
-            $('#commission-id').hide();
-        } else {
-            $('#party-id').hide();
-            $('#commission-id').show();
-        }
-
-        // Update the totals dynamically
-        function updateTotals() {
-
-            grandTotal = 0;
-            totalSellPrice = 0;
-            discountTotal = 0;
-
-            const partyId = $('#party-id').val();
-            const commissionId = $('#commission-id').val();
-
-            $('#invoice-items-body tr').each(function() {
-
-                const qty = parseFloat($(this).find('.qty-input').val()) || 0;
-
-                const mrp = parseFloat($(this).find('.qty-input').data('mrp')) || 0;
-                const sell_price = parseFloat($(this).find('.qty-input').data('sell_price')) || 0;
-                const price = parseFloat($(this).find('.qty-input').data('price')) || 0;
-                const discount = parseFloat($(this).find('.qty-input').data('discount')) || price;
-
-                let finalPrice = price; // default
-
-                // ✅ APPLY LOGIC
-                if (partyId || commissionId) {
-                    finalPrice = discount;
-                }
-
-                // ✅ CALCULATIONS
-                const rowTotal = finalPrice * qty;
-                const subtotal = sell_price * qty;
-                const disAmt = (sell_price - discount) * qty;
-
-                // ✅ UPDATE ROW TOTAL
-                $(this).find('.item-total').html('<b>₹' + Math.ceil(rowTotal) + '</b>');
-                $(this).find('.item_total_price').val(Math.ceil(rowTotal));
-
-
-                // ✅ TOTALS
-                totalSellPrice += subtotal;
-                discountTotal += disAmt;
-                grandTotal += rowTotal;
-            });
-
-            $('#total').text(Math.ceil(totalSellPrice));
-            $('#grand-total').text(Math.ceil(grandTotal));
-
-            if (partyId || commissionId) {
-                $('#discount-total').text('₹' + discountTotal.toFixed(2));
-            } else {
-                $('#discount-total').text('₹0');
+                updateTotals();
             }
 
-            $('#total_discount').val(discountTotal);
-            $('#gr_total').val(totalSellPrice);
+            // Add product to the invoice
+            $('#add-product-btn').on('click', function() {
 
-            $('#sub_total').val(grandTotal);
+                const selected = $('#add-sales-product-id option:selected');
+                const productId = selected.val();
+                const name = selected.data('name');
+                const mrp = parseFloat(selected.data('mrp'));
+                let discount = parseFloat(selected.data('discount'));
+                const sell_price = parseFloat(selected.data('sell_price'));
+                const qty = parseInt($('#new-product-qty').val()) || 1;
+                const category = selected.data('category');
+                const subcategory = selected.data('subcategory');
 
-            $('#cash-amount').val(Math.ceil(grandTotal));
-        }
+                if (!productId || !qty) return alert('Select product and quantity.');
 
-        // Add product to the invoice
-        $('#add-product-btn').on('click', function() {
+                // Check if product already exists in the table
+                let productRow = null;
+                $('#invoice-items-body tr').each(function() {
+                    const existingId = $(this).find('input[name*="[product_id]"]').val();
+                    if (existingId == productId) {
+                        productRow = $(this);
+                        return false;
+                    }
+                });
 
-            const selected = $('#new-product-id option:selected');
-            const productId = selected.val();
-            const name = selected.data('name');
-            const mrp = parseFloat(selected.data('mrp'));
-            let discount = parseFloat(selected.data('discount'));
-            const sell_price = parseFloat(selected.data('sell_price'));
-            const qty = parseInt($('#new-product-qty').val()) || 1;
-            const category = selected.data('category');
-            const subcategory = selected.data('subcategory');
+                // ✅ INVENTORY CHECK START
+                $.post('{{ route('inventory.check') }}', {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    product_id: productId,
+                    store_id: storeId,
+                    quantity: qty
+                }, function(response) {
 
-            if (!productId || !qty) return alert('Select product and quantity.');
+                    if (response.status === 'error') {
+                        Swal.fire("Stock Error", response.message, "error");
+                        return;
+                    }
 
-            // Check if product already exists in the table
-            let productRow = null;
-            $('#invoice-items-body tr').each(function() {
-                const existingId = $(this).find('input[name*="[product_id]"]').val();
-                if (existingId == productId) {
-                    productRow = $(this);
-                    return false;
-                }
-            });
+                    // ✅ ONLY AFTER STOCK OK → RUN YOUR ORIGINAL LOGIC
 
-            // ✅ INVENTORY CHECK START
-            $.post('{{ route('inventory.check') }}', {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                product_id: productId,
-                store_id: storeId,
-                quantity: qty
-            }, function(response) {
+                    const partyId = $('#party-id').val();
+                    const commissionId = $('#commission-id').val();
 
-                if (response.status === 'error') {
-                    Swal.fire("Stock Error", response.message, "error");
-                    return;
-                }
+                    if (partyId) {
 
-                // ✅ ONLY AFTER STOCK OK → RUN YOUR ORIGINAL LOGIC
+                        $.get("{{ url('/party-customer-discount') }}/" + partyId + '/' + productId,
+                            function(response) {
 
-                const partyId = $('#party-id').val();
-                const commissionId = $('#commission-id').val();
+                                if (response.discount) {
+                                    discount = response.discount;
+                                }
 
-                if (partyId) {
+                                if (!productRow) {
 
-                    $.get("{{ url('/party-customer-discount') }}/" + partyId + '/' + productId,
-                        function(response) {
+                                    const initialPrice = discount;
 
-                            if (response.discount) {
-                                discount = response.discount;
-                            }
-
-                            if (!productRow) {
-                                const row = `
+                                    const row = `
                                         <tr>
                                             <td>#</td>
                                             <td>${name}
                                                 <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
-                                            </td>
-                                            <td>
-                                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                                 <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
-                                                <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                                 <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
                                                 <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
                                                 <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
                                                 <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
-                                                <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
                                             </td>
                                             <td>
-                                                <div class="price-stack">
-                                                     
-                                                    <span class="discount">₹${discount}</span>
-                                                    <span class="mrp">₹${sell_price}</span>
-                                                   
+                                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" min="1" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}" style="width: 100px;">
+                                                    <small class="regular-price-label" style="display:none;></small>
                                                 </div>
                                             </td>
-                                            <td class="item-total"><b>₹${Math.ceil(sell_price * qty)}</b></td>
+                                            <td>
+                                                <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
+                                            </td>
                                             <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                         </tr>
                                     `;
-                                $('#invoice-items-body').append(row);
-                                itemIndex++;
-                                updateTotals();
-                            }
+                                    $('#invoice-items-body').append(row);
+                                    itemIndex++;
+                                    updateTotals();
+                                }
 
-                        });
+                            });
 
-                } else if (commissionId) {
+                    } else if (commissionId) {
 
-                    if (!productRow) {
+                        if (!productRow) {
 
-                        const row = `
+                            const initialPrice = discount;
+
+                            const row = `
                                 <tr>
                                     <td>#</td>
                                     <td>${name}
                                         <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
-                                    </td>
-                                    <td>
-                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
-                                        <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
                                         <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
-                                         <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
-                                                <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
-                                                
-                                        <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
+                                        <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
+                                        <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                     </td>
                                     <td>
-                                        <div class="price-stack">
-                                            <span class="discount">${discount}</span>
-                                            <span class="sell_price">₹${sell_price}</span>
-                                            
-                                            
+                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" min="1" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                            <small class="regular-price-label" style="display:none;"></small>
                                         </div>
                                     </td>
-                                    <td class="item-total"><b>₹${Math.ceil(sell_price * qty)}</b></td>
+                                    <td>
+                                        <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
+                                    </td>
                                     <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                 </tr>
                             `;
-                        $('#invoice-items-body').append(row);
-                        itemIndex++;
-                        updateTotals();
-                    }
-
-                } else {
-
-                    if (!productRow) {
-
-                        const row = `
-                                <tr>
-                                    <td>#</td>
-                                    <td>${name}
-                                        <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
-                                    </td>
-                                    <td>
-                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
-                                        <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
-                                        <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
-                                        <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
-                                        <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
-                                          <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
-                                                <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
-                                        <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
-                                    </td>
-                                    <td>
-                                        <div class="price-stack">
-                                            <span class="sell_price">${sell_price}</span>
-                                        </div>
-                                    </td>
-                                    <td class="item-total"><b>₹${Math.ceil(sell_price * qty)}</b></td>
-                                    <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
-                                </tr>
-                            `;
-                        $('#invoice-items-body').append(row);
-                        itemIndex++;
-                        updateTotals();
-                    }
-                }
-
-                $('#new-product-id').val('');
-                $('#new-product-qty').val('');
-
-            });
-            // ✅ INVENTORY CHECK END
-
-        });
-
-        // Remove product from invoice
-        $(document).on('click', '.remove-item', function() {
-            $(this).closest('tr').remove();
-            updateTotals();
-        });
-
-        // Credit pay validation
-        $('#creditpay-input').on('input', function() {
-            const entered = parseFloat($(this).val()) || 0;
-            const errorEl = $('#creditpay-error');
-            const creditLimit = $("#left_credit_id").val();
-            const grandTotal = parseFloat($('#grand-total').text()) || 0;
-            const selectedPaymentMethod = $('input[name="payment_method"]:checked').val();
-
-
-            let remainingAmount = grandTotal;
-            if (selectedPaymentMethod === 'online') {
-                let remainingAmount = grandTotal - entered;
-                $('#upi-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
-            } else if (selectedPaymentMethod === 'cashupi') {
-                let remainingAmount = grandTotal - entered;
-                remainingAmount = Math.ceil(remainingAmount);
-                $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
-            } else {
-                let remainingAmount = grandTotal - entered;
-                remainingAmount = Math.ceil(remainingAmount);
-                $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
-            }
-
-            let errorMsg = '';
-
-            if (entered > creditLimit) {
-                errorMsg = 'Credit Pay cannot exceed Credit Limit ₹' + creditLimit;
-
-            } else if (entered > grandTotal) {
-
-                Swal.fire("Credit Pay cannot exceed Invoice Total", "Credit Limit Exceeded",
-                    "Credit pay (₹" +
-                    creditLimit + ") cannot exceed credit limit (₹" +
-                    creditLimit + ").", "error");
-                $(this).val(grandTotal);
-                return false;
-            }
-
-            if (errorMsg) {
-                errorEl.text(errorMsg).show();
-            } else {
-                errorEl.hide();
-            }
-        });
-
-        $(document).on('input', '.qty-input', function() {
-            const $input = $(this);
-            const qty = parseInt($input.val()) || 0;
-            const price = parseFloat($input.data('price')) || 0;
-            const $row = $input.closest('tr');
-            const productId = $row.find('input[name*="[product_id]"]').val();
-
-            if (!productId || qty <= 0) {
-                $input.val(1);
-                updateTotals();
-                return;
-            }
-
-            $.post('{{ route('inventory.check') }}', {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                product_id: productId,
-                store_id: storeId,
-                quantity: qty
-            }, function(response) {
-                if (response.status === 'error') {
-                    Swal.fire("Stock Error", response.message, "error");
-                    $input.val(1);
-                }
-                updateTotals();
-            });
-        });
-
-        $('form').on('submit', function(e) {
-
-            const branchName = "{{ $branch_data->name }}";
-            const partyId = $('#party-id').val();
-
-            // ✅ WAREHOUSE → Party Required
-            if (branchName === 'WAREHOUSE' && !partyId) {
-                e.preventDefault();
-                Swal.fire(
-                    "Validation Error",
-                    "Please select Party Customer for WAREHOUSE transactions.",
-                    "warning"
-                );
-                return false;
-            }
-
-            // Existing credit validation
-            const creditLimit = $("#left_credit_id").val();
-            const creditPay = parseFloat($('input[name="creditpay"]').val()) || 0;
-            const paymentMethod = $('input[name="payment_method"]:checked').val();
-            const grandTotal = parseFloat($('#grand-total').text()) || 0;
-
-            if (paymentMethod === 'credit' && creditPay < grandTotal) {
-                e.preventDefault();
-                Swal.fire("Error", "Full amount must be paid via credit.", "error");
-                return false;
-            }
-
-            if (creditPay > creditLimit) {
-                e.preventDefault();
-                Swal.fire(
-                    "Credit Limit Exceeded",
-                    "Credit pay (₹" + creditPay + ") cannot exceed credit limit (₹" + creditLimit +
-                    ").",
-                    "error"
-                );
-            }
-        });
-
-        // Listen for changes on partyUser select
-        $('#party-id').on('change', function() {
-
-            const partyUserId = $(this).val();
-
-            // Reset commission
-            $('#commission-id').val('');
-
-            if (!partyUserId) {
-                $(".credit-section").hide();
-                updateProductDiscounts(null, null);
-
-                return;
-            }
-
-            // ✅ SHOW ONLY CREDIT
-            $(".credit-section").show();
-            $(".commission-section").hide();
-
-            // Fetch credit
-            $.get('{{ route('partyUserCredit', ':id') }}'.replace(':id', partyUserId), function(res) {
-                $('#credit-limit').text(res.credit);
-                $('#left_credit').text(res.left_credit);
-                $('#left_credit_id').val(res.left_credit);
-                $('#creditpay-input').val('');
-            });
-
-            // ✅ Apply discount
-            updateProductDiscounts(partyUserId, null);
-        });
-
-        // Listen for changes on commissionUser select
-        $('#commission-id').on('change', function() {
-
-            const commissionUserId = $(this).val();
-
-            // Reset party
-            $('#party-id').val('');
-
-            if (!commissionUserId) {
-                $(".commission-section").hide();
-                return;
-            }
-
-            // ✅ SHOW ONLY COMMISSION
-            $(".commission-section").show();
-            $(".credit-section").hide();
-
-            // ✅ Apply discount
-            updateProductDiscounts(null, commissionUserId);
-        });
-
-        // Function to update product discounts when partyUser or commissionUser is selected
-        function updateProductDiscounts(partyUserId = null, commissionUserId = null) {
-
-            $('#invoice-items-body tr').each(function() {
-
-                const row = $(this);
-                const productId = row.find('input[name*="[product_id]"]').val();
-                const qty = parseFloat(row.find('.qty-input').val()) || 1;
-                const mrp = parseFloat(row.find('.qty-input').data('mrp')) || 0;
-                const price = parseFloat(row.find('.qty-input').data('price')) || 0;
-
-
-                if (partyUserId) {
-
-                    // 🔥 PARTY DISCOUNT (API)
-                    $.get(`{{ url('/party-customer-discount') }}/${partyUserId}/${productId}`,
-                        function(res) {
-
-                            let discountPrice = res.discount ? parseFloat(res.discount) : price;
-
-                            row.find('.qty-input').data('discount', discountPrice);
-
-                            row.find('.price-stack').html(`
-                                    <span class="discount">₹${discountPrice}</span>
-                                    <span class="mrp">₹${price}</span>
-                                `);
-
+                            $('#invoice-items-body').append(row);
+                            itemIndex++;
                             updateTotals();
+                        }
 
-                        });
+                    } else {
 
-                } else if (commissionUserId) {
+                        if (!productRow) {
 
-                    // 🔥 COMMISSION DISCOUNT (product table)
-                    const discount = parseFloat(row.find('.qty-input').data('discount')) || price;
+                            const initialPrice = sell_price;
 
-                    row.find('.qty-input').data('discount', discount);
+                            const row = `
+                                <tr>
+                                    <td>#</td>
+                                    <td>${name}
+                                        <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
+                                        <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
+                                        <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                        <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
+                                        <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
+                                        <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" min="1" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                            <small class="regular-price-label" style="display:none;"></small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">
+                                    </td>
+                                    <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
+                                </tr>
+                            `;
+                            $('#invoice-items-body').append(row);
+                            itemIndex++;
+                            updateTotals();
+                        }
+                    }
 
-                    row.find('.price-stack').html(`
-                                <span class="discount">₹${discount}</span>
-                                <span class="sell_price">₹${mrp}</span>
-                            `);
+                    // ✅ Reset dropdown + qty (with select2-aware reset)
+                    $('#add-sales-product-id').val('').trigger('change.select2');
+                    resizeProductSelect();
+                    $('#new-product-qty').val('');
 
-                    updateTotals();
+                });
+                // ✅ INVENTORY CHECK END
 
+            });
+
+            // Remove product from invoice
+            $(document).on('click', '.remove-item', function() {
+                $(this).closest('tr').remove();
+                updateTotals();
+            });
+
+            $(document).on('blur', '.item-price, .qty-input', function() {
+                const $row = $(this).closest('tr');
+                const qty = parseFloat($row.find('.qty-input').val()) || 0;
+                const price = parseFloat($row.find('.item-price').val()) || 0;
+                $row.find('.item-total-input').val(Math.ceil(qty * price));
+                updateTotals();
+            });
+
+            $(document).on('blur', '.item-total-input', function() {
+                const $row = $(this).closest('tr');
+                const total = parseFloat($(this).val()) || 0;
+                const qty = parseFloat($row.find('.qty-input').val()) || 1;
+                const price = qty > 0 ? (total / qty) : 0;
+                $row.find('.item-price').val(price.toFixed(2));
+                updateTotals();
+            });
+
+            // Credit pay validation
+            $('#creditpay-input').on('input', function() {
+                const entered = parseFloat($(this).val()) || 0;
+                const errorEl = $('#creditpay-error');
+                const creditLimit = $("#left_credit_id").val();
+                const grandTotal = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
+                const selectedPaymentMethod = $('input[name="payment_method"]:checked').val();
+
+
+                let remainingAmount = grandTotal;
+                if (selectedPaymentMethod === 'online') {
+                    let remainingAmount = grandTotal - entered;
+                    $('#upi-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
+                } else if (selectedPaymentMethod === 'cashupi') {
+                    let remainingAmount = grandTotal - entered;
+                    remainingAmount = Math.ceil(remainingAmount);
+                    $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
                 } else {
+                    let remainingAmount = grandTotal - entered;
+                    remainingAmount = Math.ceil(remainingAmount);
+                    $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
+                }
 
-                    // 🔥 NORMAL (NO DISCOUNT)
-                    row.find('.qty-input').data('discount', price);
+                let errorMsg = '';
 
-                    row.find('.price-stack').html(`
-                            <span class="discount">₹${price}</span>
-                        `);
+                if (entered > creditLimit) {
+                    errorMsg = 'Credit Pay cannot exceed Credit Limit ₹' + creditLimit;
 
-                    updateTotals();
+                } else if (entered > grandTotal) {
+
+                    Swal.fire("Credit Pay cannot exceed Invoice Total", "Credit Limit Exceeded",
+                        "Credit pay (₹" +
+                        creditLimit + ") cannot exceed credit limit (₹" +
+                        creditLimit + ").", "error");
+                    $(this).val(grandTotal);
+                    return false;
+                }
+
+                if (errorMsg) {
+                    errorEl.text(errorMsg).show();
+                } else {
+                    errorEl.hide();
                 }
             });
-        }
 
-        // Handle radio button change event
-        $('input[name="payment_method"]').on('change', function() {
+            $(document).on('input', '.qty-input', function() {
+                const $input = $(this);
+                const qty = parseInt($input.val()) || 0;
+                const $row = $input.closest('tr');
+                const productId = $row.find('input[name*="[product_id]"]').val();
 
-            const selectedPaymentMethod = $(this).val();
+                if (!productId || qty <= 0) {
+                    $input.val(1);
+                    updateTotals();
+                    return;
+                }
 
-            let total = parseFloat($('#grand-total').text()) || 0;
+                $.post('{{ route('inventory.check') }}', {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    product_id: productId,
+                    store_id: storeId,
+                    quantity: qty
+                }, function(response) {
+                    if (response.status === 'error') {
+                        Swal.fire("Stock Error", response.message, "error");
+                        $input.val(1);
+                    }
+                    updateTotals();
+                });
+            });
 
-            let partyId = $('#party-id').val();
-            let commissionId = $('#commission-id').val();
-            let creditPay = parseFloat($('#creditpay-input').val()) || 0;
+            $('#invoice-items-form').on('submit', function(e) {
 
-            // Apply credit deduction
-            if (partyId || commissionId) {
-                total = total - creditPay;
+                const branchName = "{{ $branch_data->name }}";
+                const partyId = $('#party-id').val();
+
+                // ✅ WAREHOUSE → Party Required
+                if (branchName === 'WAREHOUSE' && !partyId) {
+                    e.preventDefault();
+                    Swal.fire(
+                        "Validation Error",
+                        "Please select Party Customer for WAREHOUSE transactions.",
+                        "warning"
+                    );
+                    return false;
+                }
+
+                // Existing credit validation
+                const creditLimit = $("#left_credit_id").val();
+                const creditPay = parseFloat($('input[name="creditpay"]').val()) || 0;
+                const paymentMethod = $('input[name="payment_method"]:checked').val();
+                const grandTotal = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
+
+                if (paymentMethod === 'credit' && creditPay < grandTotal) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Full amount must be paid via credit.", "error");
+                    return false;
+                }
+
+                if (creditPay > creditLimit) {
+                    e.preventDefault();
+                    Swal.fire(
+                        "Credit Limit Exceeded",
+                        "Credit pay (₹" + creditPay + ") cannot exceed credit limit (₹" + creditLimit +
+                        ").",
+                        "error"
+                    );
+                }
+            });
+
+            // Listen for changes on partyUser select
+            $('#party-id').on('change', function() {
+
+                const partyUserId = $(this).val();
+
+                // Reset commission
+                $('#commission-id').val('');
+
+                if (!partyUserId) {
+                    $(".credit-section").hide();
+                    updateProductDiscounts(null, null);
+                    $('#customer-balance-info').text('');
+
+                    return;
+                }
+
+                // ✅ SHOW ONLY CREDIT
+                $(".credit-section").show();
+                $(".commission-section").hide();
+
+                // Fetch credit
+                $.get('{{ route('partyUserCredit', ':id') }}'.replace(':id', partyUserId), function(res) {
+                    $('#credit-limit').text('₹' + res.credit);
+                    $('#left_credit').text('₹' + res.left_credit);
+                    $('#left_credit_id').val(res.left_credit);
+                    $('#creditpay-input').val('');
+                    
+                    $('#customer-balance-info').text('Current Balance: ' + res.left_credit + ' Cr');
+                });
+
+                // ✅ Apply discount
+                updateProductDiscounts(partyUserId, null);
+            });
+
+            // Listen for changes on commissionUser select
+            $('#commission-id').on('change', function() {
+
+                const commissionUserId = $(this).val();
+
+                // Reset party
+                $('#party-id').val('');
+
+                if (!commissionUserId) {
+                    $(".commission-section").hide();
+                    return;
+                }
+
+                // ✅ SHOW ONLY COMMISSION
+                $(".commission-section").show();
+                $(".credit-section").hide();
+
+                // ✅ Apply discount
+                updateProductDiscounts(null, commissionUserId);
+            });
+
+            // Function to update product discounts when partyUser or commissionUser is selected
+            function updateProductDiscounts(partyUserId = null, commissionUserId = null) {
+
+                $('#invoice-items-body tr').each(function() {
+
+                    const row = $(this);
+                    const productId = row.find('input[name*="[product_id]"]').val();
+                    const sell_price = parseFloat(row.find('.qty-input').data('sell_price')) || 0;
+
+                    if (partyUserId) {
+
+                        // 🔥 PARTY DISCOUNT (API)
+                        $.get(`{{ url('/party-customer-discount') }}/${partyUserId}/${productId}`,
+                            function(res) {
+
+                                let discountPrice = res.discount ? parseFloat(res.discount) : sell_price;
+
+                                row.find('.qty-input').data('discount', discountPrice);
+                                row.find('.item-price').val(discountPrice);
+
+                                updateTotals();
+
+                            });
+
+                    } else if (commissionUserId) {
+
+                        // 🔥 COMMISSION DISCOUNT (product table)
+                        const discount = parseFloat(row.find('.qty-input').data('discount')) || sell_price;
+
+                        row.find('.qty-input').data('discount', discount);
+                        row.find('.item-price').val(discount);
+
+                        updateTotals();
+
+                    } else {
+
+                        // 🔥 NORMAL (NO DISCOUNT)
+                        row.find('.qty-input').data('discount', sell_price);
+                        row.find('.item-price').val(sell_price);
+
+                        updateTotals();
+                    }
+                });
             }
 
-            // RESET
-            $('#cash-amount').val('');
-            $('#upi-amount').val('');
+            // Handle radio button change event
+            $('input[name="payment_method"]').on('change', function() {
 
-            if (selectedPaymentMethod === 'cash') {
+                const selectedPaymentMethod = $(this).val();
 
-                $('#cash-field').show();
-                $('#upi-field').hide();
+                let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
 
-                $('#cash-amount').val(Math.ceil(total));
-                $('#cash-amount').prop('readonly', true);
+                let partyId = $('#party-id').val();
+                let commissionId = $('#commission-id').val();
+                let creditPay = parseFloat($('#creditpay-input').val()) || 0;
 
-            } else if (selectedPaymentMethod === 'online') {
+                // Apply credit deduction
+                if (partyId || commissionId) {
+                    total = total - creditPay;
+                }
 
-                $('#cash-field').hide();
-                $('#upi-field').show();
+                // RESET
+                $('#cash-amount').val('');
+                $('#upi-amount').val('');
 
-                $('#upi-amount').val(Math.ceil(total));
-                $('#upi-amount').prop('readonly', true);
+                if (selectedPaymentMethod === 'cash') {
 
-            } else if (selectedPaymentMethod === 'cashupi') {
+                    $('#cash-field').show();
+                    $('#upi-field').hide();
 
-                $('#cash-field').show();
-                $('#upi-field').show();
+                    $('#cash-amount').val(Math.ceil(total));
+                    $('#cash-amount').prop('readonly', true);
 
-                $('#cash-amount').val(Math.ceil(total));
-                $('#upi-amount').val(0);
+                } else if (selectedPaymentMethod === 'online') {
 
-                $('#cash-amount').prop('readonly', false);
-                $('#upi-amount').prop('readonly', false);
-            } else if (selectedPaymentMethod === 'credit') {
+                    $('#cash-field').hide();
+                    $('#upi-field').show();
 
-                // ✅ CREDIT FULL PAYMENT
+                    $('#upi-amount').val(Math.ceil(total));
+                    $('#upi-amount').prop('readonly', true);
 
-                $('#cash-field').hide();
-                $('#upi-field').hide();
+                } else if (selectedPaymentMethod === 'cashupi') {
 
-                // Set full credit
-                $('#creditpay-input').val(Math.ceil(total));
+                    $('#cash-field').show();
+                    $('#upi-field').show();
 
-                // Optional: lock input
-                $('#creditpay-input').prop('readonly', true);
-            }
+                    $('#cash-amount').val(Math.ceil(total));
+                    $('#upi-amount').val(0);
 
-        });
+                    $('#cash-amount').prop('readonly', false);
+                    $('#upi-amount').prop('readonly', false);
+                } else if (selectedPaymentMethod === 'credit') {
 
-        $('input[name="payment_method"]').on('change', function() {
-            if ($(this).val() !== 'credit') {
-                $('#creditpay-input').prop('readonly', false);
-            }
-        });
+                    // ✅ CREDIT FULL PAYMENT
 
-        // When Cash input changes
-        // When Cash input changes
-        $('#cash-amount').on('input', function() {
-            let cash = parseFloat($(this).val()) || 0;
+                    $('#cash-field').hide();
+                    $('#upi-field').hide();
 
-            if ($('#cash-upi-option').is(':checked')) {
-                let total = parseFloat($('#grand-total').text()) || 0;
+                    // Set full credit
+                    $('#creditpay-input').val(Math.ceil(total));
 
-                let upi = total - cash;
-                $('#upi-amount').val(upi >= 0 ? Math.ceil(upi) : 0);
-            }
-        });
+                    // Optional: lock input
+                    $('#creditpay-input').prop('readonly', true);
+                }
 
-        // When UPI input changes
-        // When UPI input changes
-        $('#upi-amount').on('input', function() {
-            let upi = parseFloat($(this).val()) || 0;
+            });
 
-            if ($('#cash-upi-option').is(':checked')) {
-                let total = parseFloat($('#grand-total').text()) || 0;
+            $('input[name="payment_method"]').on('change', function() {
+                if ($(this).val() !== 'credit') {
+                    $('#creditpay-input').prop('readonly', false);
+                }
+            });
 
-                let cash = total - upi;
-                $('#cash-amount').val(cash >= 0 ? Math.ceil(cash) : 0);
-            }
-        });
-    });
+            // When Cash input changes
+            $('#cash-amount').on('input', function() {
+                let cash = parseFloat($(this).val()) || 0;
 
-    $('#party-id').on('change', function() {
+                if ($('#cash-upi-option').is(':checked')) {
+                    let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
 
-        const partyUserId = $(this).val();
+                    let upi = total - cash;
+                    $('#upi-amount').val(upi >= 0 ? Math.ceil(upi) : 0);
+                }
+            });
 
-        if (!partyUserId) {
-            $('#party-current-balance').text('');
-            return;
-        }
+            // When UPI input changes
+            $('#upi-amount').on('input', function() {
+                let upi = parseFloat($(this).val()) || 0;
 
-        $.ajax({
-            url: "/party/current-balance/" + partyUserId,
-            type: "GET",
-            success: function(res) {
+                if ($('#cash-upi-option').is(':checked')) {
+                    let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
 
-                const balance = parseFloat(res.balance) || 0;
+                    let cash = total - upi;
+                    $('#cash-amount').val(cash >= 0 ? Math.ceil(cash) : 0);
+                }
+            });
 
-                $('#party-current-balance').text(
-                    'Current Balance: ' +
-                    balance.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2
-                    }) + ' ' + res.type
-                );
-            }
-        });
-    });
+        }); // end $(function(){...})
+
+    })(); // end IIFE wrapper (keeps itemIndex/oldItems scoped per modal load)
 </script>

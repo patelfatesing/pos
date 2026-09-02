@@ -199,13 +199,16 @@ class Shoppingcart extends Component
 
     public function updatedSearch($value)
     {
-        $this->selectedProduct = Product::where('barcode', $value)->where('is_active', 'yes')->where('is_deleted', 'no')->first();
-        //  if (!$this->selectedProduct) {
-        //     $this->dispatch('notiffication-error', [
-        //         'message' => 'Product with this barcode not found please check with admin.'
-        //     ]);
-        //     return;
-        // }
+        $trimmedValue = trim($value);
+        if (empty($trimmedValue)) {
+            $this->selectedProduct = null;
+            return;
+        }
+
+        // Lookup product without is_active condition first to distinguish not found vs inactive
+        $this->selectedProduct = Product::where('barcode', $trimmedValue)
+            ->where('is_deleted', 'no')
+            ->first();
     }
 
     public function updatedSearchSalesReturn($value)
@@ -227,83 +230,90 @@ class Shoppingcart extends Component
 
     public function addToCartBarCode()
     {
-        // Clear previous message on each call
         $this->notFoundMessage = '';
 
+        // 1. Check if barcode exists in database
         if (!$this->selectedProduct) {
-            // Show not found message if no product selected (barcode not matched)
-            $this->notFoundMessage = __('Barcode  not found');
+            $this->notFoundMessage = __('messages.barcode_not_found', ['default' => 'Barcode not found']);
+            $this->dispatch('notiffication-error', ['message' => 'Barcode not found. Please check with admin.']);
+            $this->reset(['search', 'selectedProduct']);
             $this->dispatch('focus-barcode');
-            $this->reset('search');
             return;
         }
-        //if (!$this->selectedProduct) return;
-        $currentProduct = collect($this->cartitems)->firstWhere('product_id', $this->selectedProduct->id);
-        $currentQty = $currentProduct ? $currentProduct->quantity : 0;
-        $currentQty = $currentQty + 1;
+
+        // 2. Check if product is active (Case-insensitive check)
+        if (strtolower($this->selectedProduct->is_active) !== 'yes') {
+            $this->dispatch('notiffication-error', [
+                'message' => 'Item is inactive. Please contact the administrator.'
+            ]);
+
+            // CRITICAL: Reset scan state completely to prevent ghost caching
+            $this->reset(['search', 'selectedProduct']);
+            $this->dispatch('focus-barcode');
+            return;
+        }
+
+        // 3. Sales Return Restriction
         $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
         if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
             $this->dispatch('notiffication-error', [
                 'message' => 'Adding more items is not allowed in a refund transaction.'
             ]);
+            $this->reset(['search', 'selectedProduct']);
             return;
         }
 
-        // Fetch product with inventory
-
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        // 4. Check Store Inventory
+        $branch_id = auth()->user()->userinfo->branch->id ?? "";
 
         $product = Product::select('products.*', 'inventory_summary.total_quantity')
             ->leftJoin(DB::raw('(
-                    SELECT product_id, SUM(quantity) as total_quantity
-                    FROM inventories where store_id = ' . $branch_id . '
-                    GROUP BY product_id
-                ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
+                SELECT product_id, SUM(quantity) as total_quantity
+                FROM inventories WHERE store_id = ' . (int)$branch_id . '
+                GROUP BY product_id
+            ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
             ->where('products.id', $this->selectedProduct->id)
             ->where('products.is_deleted', 'no')
             ->first();
 
-        if ($currentQty > $product['total_quantity']) {
+        $currentProduct = collect($this->cartitems)->firstWhere('product_id', $this->selectedProduct->id);
+        $currentQty = ($currentProduct ? $currentProduct->quantity : 0) + 1;
+
+        if (!$product || $currentQty > ($product->total_quantity ?? 0)) {
             $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
-            $this->reset('search');
+            $this->reset(['search', 'selectedProduct']);
+            $this->dispatch('focus-barcode');
             return;
         }
 
+        // 5. Discount Calculations
+        $myCart = 0;
         if ($this->selectedCommissionUser) {
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
             if (!empty($commissionUser)) {
                 $this->getDiscountPrice($this->selectedProduct->id);
                 $myCart = $this->partyUserDiscountAmt;
                 $this->commissionAmount = $myCart;
-            } else {
-                $myCart = 0;
-                $this->commissionAmount = $myCart;
             }
-        } else {
-
+        } elseif ($this->selectedPartyUser) {
             $user = Partyuser::where('status', 'Active')->where('is_delete', 'No')->find($this->selectedPartyUser);
             if (!empty($user)) {
-                // $myCart=$user->credit_points;
-                //$myCart=$product->discount_amt;
-                //
                 $this->getDiscountPrice($this->selectedProduct->id, $user->id);
-                //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
                 $myCart = $this->partyUserDiscountAmt;
-            } else {
-                $myCart = 0;
-                //$this->partyAmount=$myCart;
             }
         }
 
+        // 6. Add/Update Cart Item
         $item = Cart::where('product_id', $this->selectedProduct->id)
             ->where('user_id', auth()->id())
             ->where('status', Cart::STATUS_PENDING)
             ->first();
+
         if (!empty($item)) {
             $this->incrementQty($item->id);
         } else {
             $item = new Cart();
-            $item->user_id = auth()->user()->id;
+            $item->user_id = auth()->id();
             $item->product_id = $this->selectedProduct->id;
             $item->mrp = $product->sell_price;
             $item->amount = $product->sell_price - $myCart;
@@ -322,12 +332,9 @@ class Shoppingcart extends Component
         $this->activeItemId = $item->id;
         $this->activeProductId = $this->selectedProduct->id;
 
-        // $this->updateQty($item->id);
         $this->dispatch('updateNewProductDetails');
         $this->dispatch('focus-barcode');
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'search');
-        //  session()->flash('success', 'Product added to the cart successfully');
-        // $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
+        $this->reset(['searchTerm', 'searchResults', 'showSuggestions', 'search', 'selectedProduct']);
     }
 
     public function setActiveItem($itemId, $activeProductId)
@@ -2535,12 +2542,13 @@ class Shoppingcart extends Component
             //  $this->searchSalesResults = [];
         }
 
+        // Update Search Query inside render() to exclude inactive products from dropdown
         if (strlen($this->searchTerm) > 0) {
             $this->dispatch('loader-start');
             $this->searchResults = Product::with('inventorie')
-                ->when($this->searchTerm, function ($query) {
-                    $query->where('name', 'like', '%' . $this->searchTerm . '%')->where('is_deleted', 'no');
-                })
+                ->where('name', 'like', '%' . $this->searchTerm . '%')
+                ->where('is_deleted', 'no')
+                ->where('is_active', 'yes') // Added to prevent inactive suggestion clicks
                 ->get();
             $this->dispatch('loader-stop');
             $this->showSuggestions = true;
@@ -2605,118 +2613,94 @@ class Shoppingcart extends Component
 
     public function addToCart($id)
     {
-
-        if (auth()->user()) {
-            $this->dispatch('loader-start');
-
-            $currentProduct = collect($this->cartitems)->firstWhere('product_id', $id);
-            $currentQty = $currentProduct ? $currentProduct->quantity : 0;
-            $currentQty = $currentQty + 1;
-            $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
-            if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
-                $this->dispatch('notiffication-error', [
-                    'message' => 'Adding more items is not allowed in a refund transaction.'
-                ]);
-                return;
-            }
-            // Fetch product with inventory
-
-            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-
-            $product = Product::select('products.*', 'inventory_summary.total_quantity')
-                ->leftJoin(DB::raw('(
-                    SELECT product_id, SUM(quantity) as total_quantity
-                    FROM inventories where store_id = ' . $branch_id . '
-                    GROUP BY product_id
-                ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
-                ->where('products.id', $id)
-                ->first();
-
-
-            if ($currentQty > $product['total_quantity']) {
-                $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
-                $this->dispatch('loader-stop');
-                return;
-            }
-
-            if ($this->selectedCommissionUser) {
-                $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', 'No')->find($this->selectedCommissionUser);
-                if (!empty($commissionUser)) {
-                    $this->getDiscountPrice($id);
-                    $myCart = $this->partyUserDiscountAmt;
-                    $this->commissionAmount = $myCart;
-                } else {
-                    $myCart = 0;
-                    $this->commissionAmount = $myCart;
-                }
-            } else {
-
-                $user = Partyuser::where('status', 'Active')->where('is_delete', 'No')->find($this->selectedPartyUser);
-                if (!empty($user)) {
-
-                    $this->getDiscountPrice($id, $user->id);
-                    //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
-                    $myCart = $this->partyUserDiscountAmt;
-                } else {
-                    $myCart = 0;
-                    //$this->partyAmount=$myCart;
-                }
-            }
-
-            $item = Cart::where('product_id', $id)
-                ->where('user_id', auth()->id())
-                ->where('status', Cart::STATUS_PENDING)
-                ->first();
-
-            if (!empty($item)) {
-                $this->incrementQty($item->id);
-            } else {
-                $item = new Cart();
-                $item->user_id = auth()->user()->id;
-                $item->product_id = $id;
-                $item->mrp = $product->sell_price;
-                $item->amount = $product->sell_price - $myCart;
-                $item->discount = $myCart ?? 0;
-                $item->net_amount = $product->sell_price - $myCart;
-                if ($this->one_time_transaction == true) {
-
-                    $stocksQuery = DailyProductStock::with('product')
-                        ->where('branch_id', auth()->user()->userinfo->branch->id);
-
-                    // Match with shift_id
-                    $stocksQuery->where('shift_id', $this->shift->id);
-                    $stocksQuery->where('product_id', $id);
-                    $stock_data = $stocksQuery->first();
-                    $item->sold_stock = $stock_data->sold_stock;
-
-                    // $currentQty = $stock_data->opening_stock - $stock_data->sold_stock;
-                }
-                $item->save();
-            }
-
-
-
-            $this->finalDiscountParty();
-            if ($this->selectedCommissionUser) {
-                $this->commissionAmount = $this->finalDiscountPartyAmount;
-            } else {
-                $this->partyAmount = $this->finalDiscountPartyAmount;
-            }
-
-            $this->activeItemId = $item->id;
-            $this->activeProductId = $id;
-
-            // $this->updateQty($item->id);
-            $this->dispatch('updateNewProductDetails');
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions');
-            $this->dispatch('loader-stop');
-
-            //$this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfull.']);
-
-        } else {
-            // redirect to login page
+        if (!auth()->check()) {
             return redirect(route('login'));
         }
+
+        $this->dispatch('loader-start');
+
+        // Fetch fresh instance to verify active status in real time
+        $productCheck = Product::where('id', $id)
+            ->where('is_deleted', 'no')
+            ->first();
+
+        if (!$productCheck || strtolower($productCheck->is_active) !== 'yes') {
+            $this->dispatch('loader-stop');
+            $this->dispatch('notiffication-error', [
+                'message' => 'Item is inactive. Please contact the administrator.'
+            ]);
+            $this->reset(['searchTerm', 'searchResults', 'showSuggestions']);
+            return;
+        }
+
+        // Proceed with existing inventory check and cart creation...
+        $branch_id = auth()->user()->userinfo->branch->id ?? "";
+
+        $product = Product::select('products.*', 'inventory_summary.total_quantity')
+            ->leftJoin(DB::raw('(
+                SELECT product_id, SUM(quantity) as total_quantity
+                FROM inventories where store_id = ' . (int)$branch_id . '
+                GROUP BY product_id
+            ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
+            ->where('products.id', $id)
+            ->first();
+
+        $currentProduct = collect($this->cartitems)->firstWhere('product_id', $id);
+        $currentQty = ($currentProduct ? $currentProduct->quantity : 0) + 1;
+
+        if (!$product || $currentQty > ($product->total_quantity ?? 0)) {
+            $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+            $this->dispatch('loader-stop');
+            return;
+        }
+
+        $myCart = 0;
+        if ($this->selectedCommissionUser) {
+            $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', 'No')->find($this->selectedCommissionUser);
+            if (!empty($commissionUser)) {
+                $this->getDiscountPrice($id);
+                $myCart = $this->partyUserDiscountAmt;
+                $this->commissionAmount = $myCart;
+            }
+        } else {
+            $user = Partyuser::where('status', 'Active')->where('is_delete', 'No')->find($this->selectedPartyUser);
+            if (!empty($user)) {
+                $this->getDiscountPrice($id, $user->id);
+                $myCart = $this->partyUserDiscountAmt;
+            }
+        }
+
+        $item = Cart::where('product_id', $id)
+            ->where('user_id', auth()->id())
+            ->where('status', Cart::STATUS_PENDING)
+            ->first();
+
+        if (!empty($item)) {
+            $this->incrementQty($item->id);
+        } else {
+            $item = new Cart();
+            $item->user_id = auth()->id();
+            $item->product_id = $id;
+            $item->mrp = $product->sell_price;
+            $item->amount = $product->sell_price - $myCart;
+            $item->discount = $myCart ?? 0;
+            $item->net_amount = $product->sell_price - $myCart;
+            $item->save();
+        }
+
+        $this->finalDiscountParty();
+        if ($this->selectedCommissionUser) {
+            $this->commissionAmount = $this->finalDiscountPartyAmount;
+        } else {
+            $this->partyAmount = $this->finalDiscountPartyAmount;
+        }
+
+        $this->activeItemId = $item->id;
+        $this->activeProductId = $id;
+
+        $this->dispatch('updateNewProductDetails');
+        $this->reset(['searchTerm', 'searchResults', 'showSuggestions']);
+        $this->dispatch('loader-stop');
     }
 
     public function setNotes()

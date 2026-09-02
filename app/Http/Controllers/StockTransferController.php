@@ -189,14 +189,18 @@ class StockTransferController extends Controller
 
         foreach ($data as $transfer) {
 
-            $action = '<div class="d-flex align-items-center list-action">';
-            $action .= '<a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View"
-                        href="' . route('stock-transfer.view', $transfer->transfer_number) . '"><i class="ri-eye-line mr-0"></i></a>';
-
-
-            $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-transfer/edit/' . $transfer->id) . '?type=admin">
-                <i class="ri-pencil-line"></i></a>';
-            $action .= '</div>';
+            $action = '<div class="d-flex align-items-center">';
+            $action .= '<div class="dropdown ml-auto">
+                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
+                    <i class="las la-ellipsis-h"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">';
+            
+            $action .= '<a class="dropdown-item" href="' . route('stock-transfer.view', $transfer->transfer_number) . '"><i class="ri-eye-line mr-2"></i> View</a>';
+            $action .= '<a class="dropdown-item" href="' . url('/stock-transfer/edit/' . $transfer->id) . '?type=admin"><i class="ri-pencil-line mr-2"></i> Edit</a>';
+            
+            $action .= '</div></div>'; // end dropdown
+            $action .= '</div>'; // end d-flex
 
 
             $records[] = [
@@ -317,25 +321,18 @@ class StockTransferController extends Controller
 
         foreach ($data as $transfer) {
 
-            $action = '<div class="d-flex align-items-center list-action">';
-
-            // ✅ VIEW (MODAL)
-            $action .= '<a class="badge badge-info mr-2"
-                href="javascript:void(0)"
-                onclick="openViewTransfer(\'' . $transfer->transfer_number . '\')"
-                title="View">
-                <i class="ri-eye-line mr-0"></i>
-            </a>';
-
-            // ✅ EDIT (MODAL)
-            $action .= '<a class="badge bg-success mr-2"
-                href="javascript:void(0)"
-                onclick="openEditTransfer(' . $transfer->id . ')"
-                title="Edit">
-                <i class="ri-pencil-line"></i>
-            </a>';
-
-            $action .= '</div>';
+            $action = '<div class="d-flex align-items-center">';
+            $action .= '<div class="dropdown ml-auto">
+                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
+                    <i class="las la-ellipsis-h"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">';
+            
+            $action .= '<a class="dropdown-item" href="javascript:void(0)" onclick="openViewTransfer(\'' . $transfer->transfer_number . '\')"><i class="ri-eye-line mr-2"></i> View</a>';
+            $action .= '<a class="dropdown-item" href="javascript:void(0)" onclick="openEditTransfer(' . $transfer->id . ')"><i class="ri-pencil-line mr-2"></i> Edit</a>';
+            
+            $action .= '</div></div>'; // end dropdown
+            $action .= '</div>'; // end d-flex
 
 
             $records[] = [
@@ -506,9 +503,12 @@ class StockTransferController extends Controller
             // TRANSFER NUMBER
             // =====================================================
 
-            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT);
+            $lastId = StockTransfer::max('id') ?? 0;
+            $nextId = $lastId + 1;
+            $idPart = str_pad($nextId, 2, '0', STR_PAD_LEFT);
 
-            $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
+            $transferNumber = "{$prefix}-{$datePart}-{$idPart}";
+            $transferredAt = now();
 
             // =====================================================
             // PRE STOCK VALIDATION
@@ -582,7 +582,7 @@ class StockTransferController extends Controller
                     $total_qty -= $deductQty;
 
                     // =================================================
-                    // ADD DESTINATION
+                    // ADD DESTINATION (update existing entry if found, else create)
                     // =================================================
 
                     $criteria = [
@@ -604,8 +604,8 @@ class StockTransferController extends Controller
 
                         $low_qty_level_wh = Inventory::lowLevelQty(
                             $item['product_id'],
-                            1
-                        );
+                            $request->to_store_id
+                        ) ?? 0;
 
                         Inventory::create([
                             'store_id'      => $request->to_store_id,
@@ -685,7 +685,7 @@ class StockTransferController extends Controller
                         'transfer_by'     => Auth::id(),
                         'shift_id'        => $currentShiftTo->id,
                         'from_shift_id'   => $currentShiftFrom->id,
-                        'transferred_at'  => now(),
+                        'transferred_at'  => $transferredAt,
                     ]);
 
                     $remainingQty -= $deductQty;
@@ -889,6 +889,51 @@ class StockTransferController extends Controller
         ));
     }
 
+    private function addStockBackToStore($storeId, $productId, $qty)
+    {
+        $inventory = Inventory::where('store_id', $storeId)
+            ->where('product_id', $productId)
+            ->first();
+
+        if ($inventory) {
+            $inventory->quantity += $qty;
+            $inventory->save();
+        } else {
+            Inventory::create([
+                'store_id'      => $storeId,
+                'location_id'   => $storeId,
+                'product_id'    => $productId,
+                'quantity'      => $qty,
+                'low_level_qty' => Inventory::lowLevelQty($productId, $storeId) ?? 0,
+            ]);
+        }
+    }
+
+    private function addStockToDestination($storeId, $productId, $qty, $batchNo = null, $expiryDate = null)
+    {
+        $destInventory = Inventory::where([
+            'store_id'    => $storeId,
+            'product_id'  => $productId,
+            'batch_no'    => $batchNo,
+            'expiry_date' => $expiryDate,
+        ])->first();
+
+        if ($destInventory) {
+            $destInventory->quantity += $qty;
+            $destInventory->save();
+        } else {
+            Inventory::create([
+                'store_id'      => $storeId,
+                'location_id'   => $storeId,
+                'product_id'    => $productId,
+                'batch_no'      => $batchNo,
+                'expiry_date'   => $expiryDate,
+                'quantity'      => $qty,
+                'low_level_qty' => Inventory::lowLevelQty($productId, $storeId) ?? 0,
+            ]);
+        }
+    }
+
     public function update(Request $request, $id)
     {
         try {
@@ -932,13 +977,8 @@ class StockTransferController extends Controller
                     $remainingQty = $old->quantity;
                     $affectedProducts[] = $old->product_id; // ✅ ADD THIS
 
-                    // add back to source
-                    Inventory::create([
-                        'store_id'   => $old->from_branch_id,
-                        'product_id' => $old->product_id,
-                        'quantity'   => $old->quantity,
-                        'location_id' => $old->from_branch_id
-                    ]);
+                    // ✅ FIX: add back to source — update existing entry if found, else create
+                    $this->addStockBackToStore($old->from_branch_id, $old->product_id, $old->quantity);
 
                     // deduct from destination
                     $destInventories = Inventory::where('product_id', $old->product_id)
@@ -1001,17 +1041,13 @@ class StockTransferController extends Controller
                         $inventory->quantity -= $deductQty;
                         $inventory->save();
 
-                        $dest = Inventory::where([
-                            'store_id' => $existing->to_branch_id,
-                            'product_id' => $item['product_id'],
-                            'batch_no' => $inventory->batch_no,
-                            'expiry_date' => optional($inventory->expiry_date)->toDateString(),
-                        ])->first();
-
-                        if ($dest) {
-                            $dest->quantity += $deductQty;
-                            $dest->save();
-                        }
+                        $this->addStockToDestination(
+                            $existing->to_branch_id,
+                            $item['product_id'],
+                            $deductQty,
+                            $inventory->batch_no,
+                            optional($inventory->expiry_date)->toDateString()
+                        );
 
                         $remainingQty -= $deductQty;
                     }
@@ -1025,12 +1061,8 @@ class StockTransferController extends Controller
 
                     $diff = abs($diff);
 
-                    Inventory::create([
-                        'store_id'   => $existing->from_branch_id,
-                        'product_id' => $item['product_id'],
-                        'quantity'   => $diff,
-                        'location_id' => $existing->from_branch_id
-                    ]);
+                    // ✅ FIX: add back to source — update existing entry if found, else create
+                    $this->addStockBackToStore($existing->from_branch_id, $item['product_id'], $diff);
 
                     $remainingQty = $diff;
 
@@ -1089,7 +1121,7 @@ class StockTransferController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'status' => true,
-                        'message' => 'Transfer created successfully',
+                        'message' => 'Transfer updated successfully',
                         'shift_id' => $transfer->shift_id
                     ]);
                 }
@@ -1100,7 +1132,7 @@ class StockTransferController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'status' => true,
-                        'message' => 'Transfer created successfully',
+                        'message' => 'Transfer updated successfully',
                         'shift_id' => $transfer->shift_id
                     ]);
                 }
@@ -1164,13 +1196,8 @@ class StockTransferController extends Controller
                     $remainingQty = $old->quantity;
                     $affectedProducts[] = $old->product_id; // ✅ ADD THIS
 
-                    // add back to source
-                    Inventory::create([
-                        'store_id'   => $old->from_branch_id,
-                        'product_id' => $old->product_id,
-                        'quantity'   => $old->quantity,
-                        'location_id' => $old->from_branch_id
-                    ]);
+                    // ✅ FIX: add back to source — update existing entry if found, else create
+                    $this->addStockBackToStore($old->from_branch_id, $old->product_id, $old->quantity);
 
                     // deduct from destination
                     $destInventories = Inventory::where('product_id', $old->product_id)
@@ -1233,17 +1260,13 @@ class StockTransferController extends Controller
                         $inventory->quantity -= $deductQty;
                         $inventory->save();
 
-                        $dest = Inventory::where([
-                            'store_id' => $existing->to_branch_id,
-                            'product_id' => $item['product_id'],
-                            'batch_no' => $inventory->batch_no,
-                            'expiry_date' => optional($inventory->expiry_date)->toDateString(),
-                        ])->first();
-
-                        if ($dest) {
-                            $dest->quantity += $deductQty;
-                            $dest->save();
-                        }
+                        $this->addStockToDestination(
+                            $existing->to_branch_id,
+                            $item['product_id'],
+                            $deductQty,
+                            $inventory->batch_no,
+                            optional($inventory->expiry_date)->toDateString()
+                        );
 
                         $remainingQty -= $deductQty;
                     }
@@ -1257,12 +1280,8 @@ class StockTransferController extends Controller
 
                     $diff = abs($diff);
 
-                    Inventory::create([
-                        'store_id'   => $existing->from_branch_id,
-                        'product_id' => $item['product_id'],
-                        'quantity'   => $diff,
-                        'location_id' => $existing->from_branch_id
-                    ]);
+                    // ✅ FIX: add back to source — update existing entry if found, else create
+                    $this->addStockBackToStore($existing->from_branch_id, $item['product_id'], $diff);
 
                     $remainingQty = $diff;
 
@@ -1315,30 +1334,16 @@ class StockTransferController extends Controller
             }
 
             DB::commit();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status'   => true,
+                    'message'  => 'Transfer updated successfully',
+                    'shift_id' => $transfer->shift_id
+                ]);
+            }
 
-            // if ($request->type == 'admin') {
-            //     // ✅ AJAX RESPONSE (MOST IMPORTANT)
-            //     if ($request->expectsJson()) {
-            //         return response()->json([
-            //             'status' => true,
-            //             'message' => 'Transfer created successfully',
-            //             'shift_id' => $transfer->shift_id
-            //         ]);
-            //     }
-            //     return redirect()->route('sales.salas-report')
-            //         ->with('success', 'Transfer updated successfully');
-            // } else {
-            //     // ✅ AJAX RESPONSE (MOST IMPORTANT)
-            //     if ($request->expectsJson()) {
-            //         return response()->json([
-            //             'status' => true,
-            //             'message' => 'Transfer created successfully',
-            //             'shift_id' => $transfer->shift_id
-            //         ]);
-            //     }
-                return redirect()->route('stock-transfer.list')
-                    ->with('success', 'Transfer updated successfully');
-            // }
+            return redirect()->route('stock-transfer.list')
+                ->with('success', 'Transfer updated successfully');
         } catch (\Exception $e) {
 
             DB::rollback();

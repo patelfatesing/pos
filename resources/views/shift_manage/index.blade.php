@@ -2,6 +2,19 @@
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <style>
+        #shift_tbl th, #shift_tbl td {
+            vertical-align: middle !important;
+            padding: 8px 12px;
+            white-space: nowrap;
+        }
+        #shift_tbl th:last-child, #shift_tbl td:last-child {
+            width: 1% !important;
+            text-align: center;
+        }
+    </style>
+
     <!-- Wrapper Start -->
 
     <div class="content-page">
@@ -47,14 +60,15 @@
             </div>
 
             <div class="table-responsive rounded mb-3" id="shiftTableContainer">
-                <table class="table table-striped table-bordered nowrap" id="shift_tbl">
+                <table class="table table-striped table-bordered nowrap w-100" id="shift_tbl">
                     <thead class="bg-white text-uppercase">
                         <tr class="ligth ligth-data">
                             <th>Shift No</th>
                             <th>User</th>
-                            
-                            <th>Opening Cash</th>
-                            <th>Closing Cash</th>
+                            <th>Shift Start</th>
+                            <th>Shift End</th>
+                            <th>Opening <br> Cash</th>
+                            <th>Closing <br> Cash</th>
                             <th>Status</th>
                             {{-- <th>Total Sales</th>
                             <th>Difference</th> --}}
@@ -65,7 +79,7 @@
                     </tbody>
                     <tfoot>
                         <tr style="font-weight:bold;background:#f8f9fa;">
-                            <th colspan="2" class="text-end">Total :</th>
+                            <th colspan="4" class="text-end">Total :</th>
                             <th id="ft_opening_cash">₹0.00</th>
                             <th id="ft_closing_cash">₹0.00</th>
                             <th></th>
@@ -223,7 +237,8 @@
 
             let table = $('#shift_tbl').DataTable({
                 pageLength: 10,
-                responsive: true,
+                responsive: false,
+                autoWidth: false,
                 processing: true,
                 ordering: true,
                 bLengthChange: true,
@@ -262,16 +277,16 @@
                         name: 'user_name',
                         orderable: false
                     },
-                    // {
-                    //     data: 'start_time',
-                    //     name: 'start_time',
-                    //     orderable: false
-                    // },
-                    // {
-                    //     data: 'end_time',
-                    //     name: 'end_time',
-                    //     orderable: false
-                    // },
+                    {
+                        data: 'start_time',
+                        name: 'start_time',
+                        orderable: false
+                    },
+                    {
+                        data: 'end_time',
+                        name: 'end_time',
+                        orderable: false
+                    },
                     {
                         data: 'opening_cash',
                         name: 'opening_cash',
@@ -305,7 +320,8 @@
                         data: 'action',
                         name: 'action',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        className: 'text-center'
                     },
                 ],
                 drawCallback: function(settings) {
@@ -316,12 +332,12 @@
                         parseFloat(v.replace(/[₹,]/g, '')) || 0 :
                         typeof v === 'number' ? v : 0;
 
-                    let openingTotal = api.column(2, {
+                    let openingTotal = api.column(4, {
                             page: 'current'
                         })
                         .data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                    let closingTotal = api.column(3, {
+                    let closingTotal = api.column(5, {
                             page: 'current'
                         })
                         .data().reduce((a, b) => intVal(a) + intVal(b), 0);
@@ -375,7 +391,7 @@
                             pageSize: 'A4',
 
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4,5]
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7]
                             },
 
                             customize: function(doc) {
@@ -424,6 +440,27 @@
                 $('#user_id').val('');
                 table.ajax.reload();
             });
+
+            // Fix dropdown clipping in responsive table
+            $('.table-responsive').on('shown.bs.dropdown', function(e) {
+                var $menu = $(e.target).find('.dropdown-menu');
+                $('body').append($menu.detach());
+                $menu.css({
+                    'display': 'block',
+                    'top': $(e.target).find('[data-toggle="dropdown"]').offset().top + $(e.target).find('[data-toggle="dropdown"]').outerHeight(),
+                    'left': $(e.target).find('[data-toggle="dropdown"]').offset().left - ($menu.outerWidth() - $(e.target).find('[data-toggle="dropdown"]').outerWidth())
+                });
+            });
+
+            $('.table-responsive').on('hide.bs.dropdown', function(e) {
+                var $menu = $('body > .dropdown-menu:last-child');
+                $(e.target).append($menu.detach().css({
+                    'display': '',
+                    'top': '',
+                    'left': ''
+                }));
+            });
+
         });
 
         // Use event delegation for dynamically created elements:
@@ -572,7 +609,7 @@
             //                     $('#shift_tbl').DataTable().ajax.reload(null, false);
             //                 } else {
             //                     $('#shiftSummaryContent').html(response
-            //                     .html); // show the returned Blade HTML
+            //                         .html); // show the returned Blade HTML
             //                     // Show the modal
             //                     const modal = new bootstrap.Modal(document.getElementById(
             //                         'shiftSummaryModal'));

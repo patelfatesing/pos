@@ -1062,107 +1062,96 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getTopAndWorstProductsByCategory(?string $fy): array
+    private function getTopAndWorstProductsByCategory(?string $fy, string $category = 'BEER'): array
     {
         [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
 
-        $subCategories = ['BEER', 'IMFL', 'CL', 'RML'];
-
         $rows = DB::select("
-    WITH RECURSIVE seq(n) AS (
-        SELECT 0
-        UNION ALL
-        SELECT n + 1 FROM seq WHERE n < 499
-    )
-    SELECT 
-        JSON_UNQUOTE(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].subcategory'))) AS subcategory,
-        JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id')) AS product_id,
-        p.name AS product_name,
-        SUM(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity'))) AS total_qty,
-        SUM(
-            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity')) *
-            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].price'))
-        ) AS total_amount
-    FROM invoices i
-    JOIN seq
-        ON seq.n < JSON_LENGTH(i.items)
-    JOIN products p 
-        ON p.id = JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id'))
-    WHERE i.created_at BETWEEN ? AND ?
-    AND i.status NOT IN ('Hold', 'resumed', 'archived')
-    GROUP BY subcategory, product_id, p.name
-", [$fyStart, $fyEnd]);
-
+            SELECT 
+                jt.subcategory,
+                jt.product_id,
+                p.name AS product_name,
+                SUM(jt.quantity) AS total_qty,
+                SUM(jt.quantity * jt.price) AS total_amount
+            FROM invoices i
+            CROSS JOIN JSON_TABLE(
+                i.items,
+                '$[*]' COLUMNS (
+                    subcategory VARCHAR(100) PATH '$.subcategory',
+                    product_id INT PATH '$.product_id',
+                    quantity INT PATH '$.quantity',
+                    price DECIMAL(10,2) PATH '$.price'
+                )
+            ) AS jt
+            JOIN products p ON p.id = jt.product_id
+            WHERE i.created_at BETWEEN ? AND ?
+              AND i.status NOT IN ('Hold', 'resumed', 'archived')
+              AND jt.subcategory = ?
+            GROUP BY jt.subcategory, jt.product_id, p.name
+        ", [$fyStart, $fyEnd, $category]);
 
         $collection = collect($rows);
 
-        $top = [];
-        $worst = [];
-
-        foreach ($subCategories as $cat) {
-            $catData = $collection->where('subcategory', $cat);
-
-            $top[$cat] = $catData->sortByDesc('total_qty')->first();
-            $worst[$cat] = $catData->sortBy('total_qty')->first();
-        }
-
         return [
-            'top' => $top,
-            'worst' => $worst,
+            'top'   => $collection->sortByDesc('total_qty')->take(10)->values(),
+            'worst' => $collection->sortBy('total_qty')->take(10)->values(),
         ];
     }
 
     public function ajaxTopAndWorstProducts(Request $request)
     {
-        $data = $this->getTopAndWorstProductsByCategory($request->fy);
-
-        $categoryImages = [
-            'BEER' => 'assets/images/subcategory/Beer-Category.jpeg',
-            'CL'   => 'assets/images/subcategory/Country-Liqour-Category.jpeg',
-            'IMFL' => 'assets/images/subcategory/Imfl-Category.jpeg',
-            'RML'  => 'assets/images/subcategory/Rml-Category.jpeg',
-        ];
+        $category = $request->input('category', 'BEER');
+        $data = $this->getTopAndWorstProductsByCategory($request->fy, $category);
 
         $products = $request->type === 'top'
             ? $data['top']
             : $data['worst'];
 
-        $bgClass = $request->type === 'top'
-            ? 'bg-warning-light'
-            : 'bg-danger-light';
+        $html = '
+        <div class="table-responsive shadow-sm rounded border bg-white mb-4">
+            <table class="table table-bordered table-hover align-middle mb-0 custom-dashboard-table">
+                <thead>
+                    <tr class="bg-light text-secondary">
+                        <th class="border-top-0 border-left-0">Product</th>
+                        <th class="text-center">Category</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right border-right-0">Earned (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>';
 
-        $html = '';
+        $hasData = false;
 
-        foreach ($products as $category => $product) {
-
+        foreach ($products as $product) {
             if (!$product) continue;
-
-            $img = asset($categoryImages[$category] ?? 'assets/images/default.png');
+            $hasData = true;
 
             $html .= '
-        <div class="card card-block card-stretch card-height-helf mb-3">
-            <div class="card-body card-item-right">
-                <div class="d-flex align-items-top">
-                    <div class="' . $bgClass . ' rounded">
-                        <img src="' . $img . '"
-                            class="style-img m-auto"
-                            style="width: 250px; height: 180px;"
-                            alt="' . $category . '">
-                    </div>
-                    <div class="style-text text-left ml-3">
-                        <h5 class="mb-1">' . e($product->product_name) . '</h5>
-                        <small class="text-muted">' . $category . '</small>
-                        <p class="mb-1">Total Sell : ' . number_format($product->total_qty) . '</p>
-                        <p class="mb-0">Total Earned : ₹' . number_format($product->total_amount, 2) . '</p>
-                    </div>
-                </div>
-            </div>
-        </div>';
+                    <tr>
+                        <td class="border-left-0">
+                            <span class="product-name font-weight-bold text-primary">' . e($product->product_name) . '</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-soft-info px-2 py-1 font-weight-bold" style="font-size: 11px;">' . e($product->subcategory) . '</span>
+                        </td>
+                        <td class="text-right font-weight-bold text-dark">' . number_format($product->total_qty) . '</td>
+                        <td class="text-right font-weight-bold text-success border-right-0">₹' . number_format($product->total_amount, 2) . '</td>
+                    </tr>';
         }
 
-        if ($html === '') {
-            $html = '<p class="text-center text-muted">No data found</p>';
+        if (!$hasData) {
+            $html .= '
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4 font-weight-bold border-left-0 border-right-0">
+                            No data found
+                        </td>
+                    </tr>';
         }
+
+        $html .= '
+                </tbody>
+            </table>
+        </div>';
 
         return response()->json(['html' => $html]);
     }

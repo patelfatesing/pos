@@ -66,7 +66,7 @@
                                             <div class="col-md-6"></div>
                                         @endif
                                         <input type="hidden" name="type" value="{{ request('type') }}">
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>From Store *</label>
                                                 <select name="from_store_id" id="from_store_id"
@@ -84,7 +84,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>To Store *</label>
                                                 <select name="to_store_id" id="to_store_id"
@@ -120,7 +120,7 @@
                                                 @enderror
                                             </div>
                                         </div> --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>Category *</label>
                                                 <select id="sub_category_ids" name="subcategory_id" class="form-control"
@@ -243,10 +243,10 @@
                                     </div>
 
                                     <div class="row mt-3">
-                                        <div class="col-12">
+                                        <div class="col-12 d-flex justify-content-end">
                                             <button type="submit" id="submitBtn" class="btn btn-success">Submit
                                                 Transfer</button>
-                                            <button type="reset" class="btn btn-danger">Reset</button>
+                                            <button type="reset" class="btn btn-danger ml-2">Reset</button>
                                         </div>
                                     </div>
                                 </form>
@@ -258,9 +258,159 @@
         </div>
     </div>
 
+    <style>
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select2-container .select2-selection--single {
+            height: 38px !important;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .select2-container .select2-selection--single .select2-selection__rendered {
+            line-height: 36px !important;
+            padding-left: 12px;
+            padding-right: 45px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .select2-container .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+            right: 6px;
+            pointer-events: none;
+        }
+
+        .select2-container .select2-selection--single .select2-selection__clear {
+            position: absolute;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .select2-results__option {
+            white-space: nowrap;
+            padding-right: 20px;
+        }
+
+        .select2-search--dropdown .select2-search__field {
+            padding: 6px 8px;
+        }
+
+        #product-items td {
+            position: relative;
+        }
+
+        #product-items th:first-child,
+        #product-items td.sr-no {
+            width: 45px;
+            max-width: 45px;
+            text-align: center;
+            white-space: nowrap;
+        }
+    </style>
+
     <script>
+        function initProductSelect2(context) {
+            context.find('.product-select').each(function() {
+                const $sel = $(this);
+
+                if ($sel.hasClass('select2-hidden-accessible')) {
+                    return; 
+                }
+
+                $sel.select2({
+                    placeholder: 'Select Product',
+                    allowClear: true,
+                    width: '100%'
+                });
+
+                // Bind event directly to the element
+                $sel.on('select2:select', function(e) {
+                    const productId = e.params?.data?.id || $(this).val();
+                    console.log('Directly bound select2:select fired/triggered:', productId);
+                    const from_store_id = $("#from_store_id").val();
+                    const to_store_id = $("#to_store_id").val();
+                    const container = $(this).closest('.item-row').find('.availability-container');
+                    const currentSelect = $(this);
+
+                    // Check if this product is already selected in another row
+                    if (productId) {
+                        const isDuplicate = $('.product-select').not(this).toArray().some(select => select.value ===
+                            productId);
+                        if (isDuplicate) {
+                            alert("This product is already selected. Please choose a different product.");
+                            currentSelect.val(null).trigger('change.select2');
+                            container.empty();
+                            return false;
+                        }
+                    }
+
+                    if (!from_store_id) {
+                        alert("Please select the source store first.");
+                        currentSelect.val(null).trigger('change.select2');
+                        return false;
+                    }
+
+                    if (!to_store_id) {
+                        alert("Please select the destination store first.");
+                        currentSelect.val(null).trigger('change.select2');
+                        return false;
+                    }
+
+                    if (productId) {
+                        $.ajax({
+                            url: "{{ url('/products/get-availability-branch') }}/" + productId +
+                                "?from=" + encodeURIComponent(from_store_id) +
+                                "&to=" + encodeURIComponent(to_store_id),
+                            type: "GET",
+                            dataType: "json",
+                            success: function(data) {
+                                console.log('Stock availability response:', data);
+
+                                if (data.from_count <= 0) {
+                                    alert("Insufficient stock in the source store for this product.");
+
+                                    currentSelect.val(null).trigger('change.select2');
+                                    container.empty();
+                                    return false;
+                                }
+                                let html = `
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Source Store Stock:</strong> ${data.from_count}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Destination Store Stock:</strong> ${data.to_count}
+                                        </div>
+                                    </div>`;
+                                container.html(html);
+                            },
+                            error: function() {
+                                container.html(
+                                    '<div class="text-danger">Failed to load stock information. Please try again.</div>'
+                                );
+                            }
+                        });
+                    } else {
+                        container.empty();
+                    }
+                });
+            });
+        }
+
         $(document).ready(function() {
+
+            initProductSelect2($('#productBody'));
+
             updateAddButton();
+
             $('#category_id').on('change', function() {
 
                 var categoryId = $(this).val();
@@ -297,8 +447,12 @@
 
                 // Only update the product dropdown in the last added product row
                 const lastProductRow = $('#product-items .item-row:last');
-                lastProductRow.find('.product-select').empty().append(
-                    '<option value="">Select Product</option>');
+                const $lastSelect = lastProductRow.find('.product-select');
+
+                $lastSelect.empty().append('<option value="">Select Product</option>');
+                if ($lastSelect.hasClass('select2-hidden-accessible')) {
+                    $lastSelect.trigger('change.select2');
+                }
 
                 // Populate the product dropdown for the selected subcategory
                 if (subCategoryId) {
@@ -308,10 +462,15 @@
                         dataType: "json",
                         success: function(data) {
                             data.forEach(function(product) {
-                                lastProductRow.find('.product-select').append(
+                                $lastSelect.append(
                                     '<option value="' + product.id + '">' + product
                                     .name + '</option>');
                             });
+
+                            if ($lastSelect.hasClass('select2-hidden-accessible')) {
+                                $lastSelect.trigger('change.select2');
+                                $lastSelect.trigger('change');
+                            }
                         },
                         error: function() {
                             alert('Failed to fetch products. Please try again.');
@@ -436,6 +595,8 @@
             let currentRow = $('#productBody tr:last');
             let selectBox = currentRow.find('.product-select');
 
+            initProductSelect2(currentRow);
+
             // load selected sub category products
             if (subCategoryId) {
 
@@ -454,6 +615,9 @@
                             );
 
                         });
+
+                        selectBox.trigger('change.select2');
+                        selectBox.trigger('change');
 
                     }
                 });
@@ -479,74 +643,8 @@
         });
 
         // Product selection handler
-        $(document).on('change', '.product-select', function() {
-            const productId = $(this).val();
-            const from_store_id = $("#from_store_id").val();
-            const to_store_id = $("#to_store_id").val();
-            const container = $(this).closest('.item-row').find('.availability-container');
-            const currentSelect = $(this);
+        // Removed: replaced by direct binding in initProductSelect2
 
-            // Check if this product is already selected in another row
-            if (productId) {
-                const isDuplicate = $('.product-select').not(this).toArray().some(select => select.value ===
-                    productId);
-                if (isDuplicate) {
-                    alert("This product is already selected. Please choose a different product.");
-                    currentSelect.val('');
-                    container.empty();
-                    return false;
-                }
-            }
-
-            if (!from_store_id) {
-                alert("Please select the source store first.");
-                currentSelect.val('');
-                return false;
-            }
-
-            if (!to_store_id) {
-                alert("Please select the destination store first.");
-                currentSelect.val('');
-                return false;
-            }
-
-            if (productId) {
-                $.ajax({
-                    url: "{{ url('/products/get-availability-branch') }}/" + productId +
-                        "?from=" + encodeURIComponent(from_store_id) +
-                        "&to=" + encodeURIComponent(to_store_id),
-                    type: "GET",
-                    dataType: "json",
-                    success: function(data) {
-
-                        if (data.from_count <= 0) {
-                            alert("Insufficient stock in the source store for this product.");
-
-                            currentSelect.val('');
-                            container.empty();
-                            return false;
-                        }
-                        let html = `
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <strong>Source Store Stock:</strong> ${data.from_count}
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Destination Store Stock:</strong> ${data.to_count}
-                                </div>
-                            </div>`;
-                        container.html(html);
-                    },
-                    error: function() {
-                        container.html(
-                            '<div class="text-danger">Failed to load stock information. Please try again.</div>'
-                        );
-                    }
-                });
-            } else {
-                container.empty();
-            }
-        });
 
         // Trigger change event for pre-selected products
         $(document).ready(function() {
@@ -554,7 +652,7 @@
 
             $('.product-select').each(function() {
                 if ($(this).val()) {
-                    $(this).trigger('change');
+                    $(this).trigger('select2:select', { params: { data: { id: $(this).val() } } }); 
                 }
             });
         });
@@ -582,6 +680,21 @@
         }
         // Trigger total update on quantity input change
         $(document).on('input', 'input[name^="items"][name$="[quantity]"]', updateTotalQuantity);
+
+        $(document).on('click', 'button[type="reset"]', function() {
+            setTimeout(function() {
+                // Refresh select2 display for every product dropdown to match the reset <select> value
+                $('.product-select').each(function() {
+                    if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).trigger('change.select2');
+                    }
+                });
+
+                $('.availability-container').empty();
+
+                updateTotalQuantity();
+            }, 0);
+        });
 
         // Also update total when new row is added
         $('#add-item').on('click', function() {
@@ -678,6 +791,9 @@
                     </td>
                 </tr>
             `);
+
+                    itemIndex = 1;
+                    initProductSelect2($('#productBody'));
 
                     updateSrNo();
                     updateAddButton();

@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/remixicon/fonts/remixicon.css') }}">
+    <link href="{{ asset('assets/css/select2.min.css') }}" rel="stylesheet" />
 </head>
 </head>
 
@@ -37,6 +38,7 @@
     <script src="{{ asset('assets/js/script.js') }}"></script>
     <!-- Backend Bundle JavaScript -->
     <script src="{{ asset('assets/js/backend-bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
     <!-- Table Treeview JavaScript -->
     <script src="{{ asset('assets/js/table-treeview.js') }}"></script>

@@ -61,7 +61,7 @@
                                 <i class="las la-minus"></i><span>Category Manage</span>
                             </a>
                         </li>
-                        <li class="">
+                        <!-- <li class="">
                             <a href="{{ route('subcategories.list') }}">
                                 <i class="las la-minus"></i><span>Sub Category</span>
                             </a>
@@ -70,7 +70,7 @@
                             <a href="{{ route('packsize.list') }}">
                                 <i class="las la-minus"></i><span>Pack Size</span>
                             </a>
-                        </li>
+                        </li> -->
 
                     </ul>
                 </li>

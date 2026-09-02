@@ -1,5 +1,31 @@
 @extends('layouts.backend.datatable_layouts')
 
+@section('styles')
+    <style>
+        #scrollToTop {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            text-align: center;
+            line-height: 42px;
+            color: #007bff;
+            z-index: 1000;
+            transition: background 0.3s, color 0.3s;
+            text-decoration: none;
+            display: none;
+        }
+        #scrollToTop:hover {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+@endsection
+
 @section('page-content')
     <div class="content-page">
         <div class="container-fluid">
@@ -25,7 +51,7 @@
                         <div class="col-md-3">
                             <div class="form-group mb-0">
                                 <select name="subCategorySearch" id="subCategorySearch" class="form-control">
-                                    <option value="">Select All Sub Category</option>
+                                    <option value="">Select All Category</option>
                                     @foreach ($subcategories as $id => $name)
                                         <option value="{{ $name->id }}">{{ $name->name }}</option>
                                     @endforeach
@@ -46,10 +72,11 @@
                                     <th>Sr No</th>
                                     <th>Product</th>
                                     <th>Store</th>
-                                    <th>In-Stock</th>
-                                    <th>Cost Price</th>
-                                    <th>Sales Price</th>
-                                    <th>Stock Low Level</th>
+                                    <th>In-<br>Stock</th>
+                                    <th>Cost<br>Price</th>
+                                    <th>Sales<br>Price</th>
+                                    <th>Discount<br>Price</th>
+                                    <th>Stock Low<br>Level</th>
                                     <th>Last updated</th>
                                 </tr>
                             </thead>
@@ -60,7 +87,7 @@
 
                                     <th id="total_stock" class="text-center"></th>
 
-                                    <th colspan="4"></th>
+                                    <th colspan="5"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -207,6 +234,11 @@
                         orderable: false,
                         className: "text-center"
                     },
+                    {
+                        data: 'discount_price',
+                        orderable: false,
+                        className: "text-center"
+                    },
                     // {
                     //     data: 'expiry_date',
                     //     orderable: true
@@ -252,7 +284,7 @@
                 ],
                 autoWidth: false,
                 order: [
-                    [7, 'asc']
+                    [8, 'asc']
                 ], // Order by updated_at
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
@@ -387,6 +419,19 @@
                 table.ajax.reload(null, false); // Reload DataTable with the new filter value
             });
 
+            // Scroll to top
+            $(window).scroll(function() {
+                if ($(this).scrollTop() > 200) {
+                    $('#scrollToTop').fadeIn();
+                } else {
+                    $('#scrollToTop').fadeOut();
+                }
+            });
+            $('#scrollToTop').click(function(e) {
+                e.preventDefault();
+                $('html, body').animate({scrollTop: 0}, 'slow');
+            });
+
             // Submit low level form
             $('#lowLevelStockUpdateForm').on('submit', function(e) {
                 e.preventDefault();
@@ -465,4 +510,5 @@
             pdfLogo = base64;
         });
     </script>
+    <a href="#" id="scrollToTop"><i class="fa fa-arrow-up"></i></a>
 @endsection

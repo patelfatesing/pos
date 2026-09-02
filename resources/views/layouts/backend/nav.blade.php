@@ -164,6 +164,15 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             </div>
                         </li>
                         <li>
+                            <a href="javascript:void(0);" 
+                            class="btn border add-btn shadow-none mx-1 d-flex align-items-center" 
+                            id="btnRefreshPage" 
+                            title="Refresh Page"
+                            onclick="window.location.reload();">
+                                Refresh
+                            </a>
+                        </li>
+                        <li>
                             <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                 data-toggle="modal" data-target="#new-order">{{ session('role_name') }}</a>
                         </li>
@@ -552,10 +561,13 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 @endif
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('clearDateFilter').addEventListener('click', function() {
-            document.getElementById('start_date').value = '';
-            document.getElementById('end_date').value = '';
-            document.getElementById('dateFilterForm').submit();
-        });
+        const clearBtn = document.getElementById('clearDateFilter');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                document.getElementById('start_date').value = '';
+                document.getElementById('end_date').value = '';
+                document.getElementById('dateFilterForm').submit();
+            });
+        }
     });
 </script>
