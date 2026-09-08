@@ -46,7 +46,7 @@
                             </td>
 
                             <td class="text-end fw-semibold text-nowrap">
-                                ₹{{ number_format($transaction->total, 2) }}
+                                ₹{{ number_format((float) ($transaction->total ?? 0), 2) }}
                             </td>
 
                             <td class="text-end">
