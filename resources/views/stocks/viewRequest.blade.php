@@ -3,6 +3,31 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
 <script src="{{ asset('assets/js/jquery-3.6.0.min.js')}}"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<style>
+.table-responsive #stock-requests-details-table_wrapper #stock-requests-details-table_filter {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+#stock-requests-details-table_wrapper #stock-requests-details-table_info {
+    padding-top: 0px !important;
+}
+
+.card #header-card-body {
+    padding: 12px;
+}
+
+#stock-requests-details-table th:nth-child(3),
+#stock-requests-details-table td:nth-child(3),
+#stock-requests-details-table th:nth-child(4),
+#stock-requests-details-table td:nth-child(4),
+#stock-requests-details-table th:nth-child(5),
+#stock-requests-details-table td:nth-child(5) {
+    text-align: center !important;
+}
+
+</style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
@@ -11,17 +36,17 @@
         <div class="content-page">
             <div class="container-fluid">
 
-                <div class="card-header d-flex justify-content-between">
-                    <div class="header-title">
-                        <h4 class="card-title">Stock Request Detail</h4>
+                <!-- Enhanced Header -->
+                <div class="card shadow-sm mb-2">
+                    <div class="card-header text-white d-flex align-items-center justify-content-between py-1" style="background-color: #AFBEFA;">
+                        <h4 class="card-title text-white mb-0 text-left">Stock Request Detail</h4>
+                        <div>
+                            <a href="{{ route('stock.requestList') }}" class="btn btn-secondary">Back</a>
+                        </div>
                     </div>
-                    <div>
-                        <a href="{{ route('stock.requestList') }}" class="btn btn-secondary">Back</a>
-                    </div>
-                </div>
 
-                <div class="card mb-4">
-                    <div class="card-body">
+                <div class="card mb-3">
+                    <div class="card-body" id="header-card-body">
                         <div class="row">
                             <div class="col-sm-4">
                                 <p><strong>To Store:</strong> {{ $stockRequest->tobranch->name ?? 'warehouse' }}</p>
@@ -61,34 +86,36 @@
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header"><strong>Requested Items</strong></div>
+                <!-- Items Table -->
+                <div class="card shadow-sm">
+                    <!-- <div class="card-header bg-light py-2"><strong>Requested Items</strong></div> -->
                     <div class="card-body p-0">
-                        <table class="table table-bordered mb-0" id="stock-requests-details-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Product</th>
-                                    <th>Size</th>
-                                    <th>Quantity</th>
-                                    <th>From Store</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="4" style="text-align:right">Total Quantity:</th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0" id="stock-requests-details-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th>Size</th>
+                                        <th>Quantity</th>
+                                        <th>From Store</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot class="table-light">
+                                    <tr >
+                                        <th colspan="3" style="text-align: right;">Total</th>
+                                        <th style="text-align: center;"></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <!-- Page end  -->
             </div>
         </div>
     </div>
-    <!-- Wrapper End-->
 
     <script>
         $(document).ready(function() {
@@ -161,8 +188,9 @@
                 },
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2]
+                    aTargets: [0,1,2,4]
                 }],
+                order: [[3, 'desc']],
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],

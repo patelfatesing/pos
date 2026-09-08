@@ -60,26 +60,15 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('external/rectangle4675146-vix6-200h.png') }}"
-                                                    alt="Rectangle4675146" class="notification-screen-rectangle4674" />
-                                                <span class="notification-screen-text99">
-                                                    {{ $notification['date'] }}
-                                                </span>
-                                                <span class="notification-screen-text100">
-                                                    {{ $notification['time'] }}
-                                                </span>
+                                                <span class="notification-screen-text99">{{ $notification['date'] }}</span>
+                                                <span class="notification-screen-text100">{{ $notification['time'] }}</span>
                                             </div>
+
                                         @elseif($notification['type'] == 'low_stock')
                                             <div class="notification-screen-notification1 open-form"
                                                 id="{{ $notification['id'] }}" data-type="{{ $notification['type'] }}"
                                                 data-id="{{ $notification['req_id'] }}"
                                                 data-nfid="{{ $notification['id'] }}">
-                                                <span class="notification-screen-text85">
-                                                    {{ $notification['date'] }}
-                                                </span>
-                                                <span class="notification-screen-text86">
-                                                    {{ $notification['time'] }}
-                                                </span>
                                                 <div class="notification-screen-frame3701">
                                                     <div class="notification-screen-frame3">
                                                         <div class="notification-screen-icon">
@@ -104,9 +93,10 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('external/rectangle4675146-844-200h.png') }}"
-                                                    alt="Rectangle4675146" class="notification-screen-rectangle4671" />
+                                                <span class="notification-screen-text85">{{ $notification['date'] }}</span>
+                                                <span class="notification-screen-text86">{{ $notification['time'] }}</span>
                                             </div>
+
                                         @elseif($notification['type'] == 'price_change')
                                             <div class="notification-screen-notification2 open-form"
                                                 id="{{ $notification['id'] }}" data-type="{{ $notification['type'] }}"
@@ -119,28 +109,24 @@
                                                                 <div class="notification-screen-group17">
                                                                     <div class="notification-screen-group18">
                                                                         <img src="{{ asset('external/vector5125-0v27.svg') }}"
-                                                                            alt="Vector5125"
-                                                                            class="notification-screen-vector31" />
+                                                                            alt="Vector5125" class="notification-screen-vector31" />
                                                                     </div>
                                                                 </div>
                                                                 <div class="notification-screen-group19">
                                                                     <div class="notification-screen-group20">
                                                                         <img src="{{ asset('external/vector5125-2nkr.svg') }}"
-                                                                            alt="Vector5125"
-                                                                            class="notification-screen-vector32" />
+                                                                            alt="Vector5125" class="notification-screen-vector32" />
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="notification-screen-group21">
                                                                 <div class="notification-screen-group22">
                                                                     <img src="{{ asset('external/vector5125-zrhu.svg') }}"
-                                                                        alt="Vector5125"
-                                                                        class="notification-screen-vector33" />
+                                                                        alt="Vector5125" class="notification-screen-vector33" />
                                                                 </div>
                                                                 <div class="notification-screen-group23">
                                                                     <img src="{{ asset('external/vector5125-3vv7.svg') }}"
-                                                                        alt="Vector5125"
-                                                                        class="notification-screen-vector34" />
+                                                                        alt="Vector5125" class="notification-screen-vector34" />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -154,16 +140,10 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('external/rectangle4675146-j0gl-200h.png') }}"
-                                                    alt="Rectangle4675146"
-                                                    class="notification-screen-rectangle4672" />
-                                                <span class="notification-screen-text91">
-                                                    {{ $notification['date'] }}
-                                                </span>
-                                                <span class="notification-screen-text92">
-                                                    {{ $notification['time'] }}
-                                                </span>
+                                                <span class="notification-screen-text91">{{ $notification['date'] }}</span>
+                                                <span class="notification-screen-text92">{{ $notification['time'] }}</span>
                                             </div>
+
                                         @elseif($notification['type'] == 'transfer_stock')
                                             <div class="notification-screen-notification3 open-form"
                                                 id="{{ $notification['id'] }}"
@@ -174,11 +154,9 @@
                                                     <div class="notification-screen-layer14">
                                                         <div class="notification-screen-group24">
                                                             <img src="{{ asset('external/vector5165-mkxn.svg') }}"
-                                                                alt="Vector5165"
-                                                                class="notification-screen-vector35" />
+                                                                alt="Vector5165" class="notification-screen-vector35" />
                                                             <img src="{{ asset('external/vector5165-a0na.svg') }}"
-                                                                alt="Vector5165"
-                                                                class="notification-screen-vector36" />
+                                                                alt="Vector5165" class="notification-screen-vector36" />
                                                         </div>
                                                     </div>
                                                     <div class="notification-screen-frame3693">
@@ -190,73 +168,11 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('external/rectangle4675146-6a3-200h.png') }}"
-                                                    alt="Rectangle4675146"
-                                                    class="notification-screen-rectangle4673" />
-                                                <span class="notification-screen-text95">
-                                                    {{ $notification['date'] }}
-                                                </span>
-                                                <span class="notification-screen-text96">
-                                                    {{ $notification['time'] }}
-                                                </span>
+                                                <span class="notification-screen-text95">{{ $notification['date'] }}</span>
+                                                <span class="notification-screen-text96">{{ $notification['time'] }}</span>
                                             </div>
-                                        @elseif($notification['type'] == 'transfer_stock')
-                                            <div class="notification-screen-notification5 open-form"
-                                                id="{{ $notification['id'] }}"
-                                                data-type="{{ $notification['type'] }}"
-                                                data-id="{{ $notification['req_id'] }}"
-                                                data-nfid="{{ $notification['id'] }}">
-                                                <div class="notification-screen-frame3705">
-                                                    <img src="{{ asset('external/1image15185-oc6f-200h.png') }}"
-                                                        alt="image15185" class="notification-screen-image1" />
-                                                    <div class="notification-screen-frame3695">
-                                                        <span class="notification-screen-text101">
-                                                            {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
-                                                        </span>
-                                                        <span class="notification-screen-text102">
-                                                            {{ $notification['message'] }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <img src="{{ asset('external/rectangle4675146-yc2-200h.png') }}"
-                                                    alt="Rectangle4675146"
-                                                    class="notification-screen-rectangle4675" />
-                                                <span class="notification-screen-text103">
-                                                    {{ $notification['date'] }}
-                                                </span>
-                                                <span class="notification-screen-text104">
-                                                    {{ $notification['time'] }}
-                                                </span>
-                                            </div>
-                                        @elseif($notification['type'] == 'rejected_stock')
-                                            <div class="notification-screen-notification5 open-form"
-                                                id="{{ $notification['id'] }}"
-                                                data-type="{{ $notification['type'] }}"
-                                                data-id="{{ $notification['req_id'] }}"
-                                                data-nfid="{{ $notification['id'] }}">
-                                                <div class="notification-screen-frame3705">
-                                                    {{-- <img src="{{ asset('external/image15185-oc6f-200h.png') }}"
-                                                        alt="image15185" class="notification-screen-image1" /> --}}
-                                                    <div class="notification-screen-frame3695">
-                                                        <span class="notification-screen-text101">
-                                                            {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
-                                                        </span>
-                                                        <span class="notification-screen-text102">
-                                                            {{ $notification['message'] }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <img src="{{ asset('external/rectangle4675146-yc2-200h.png') }}"
-                                                    alt="Rectangle4675146"
-                                                    class="notification-screen-rectangle4675" />
-                                                <span class="notification-screen-text103">
-                                                    {{ $notification['date'] }}
-                                                </span>
-                                                <span class="notification-screen-text104">
-                                                    {{ $notification['time'] }}
-                                                </span>
-                                            </div>
-                                        @else
+
+                                        @elseif($notification['type'] == 'approved_stock')
                                             <div class="notification-screen-notification4 open-form"
                                                 id="{{ $notification['id'] }}"
                                                 data-type="{{ $notification['type'] }}"
@@ -266,11 +182,9 @@
                                                     <div class="notification-screen-layer15">
                                                         <div class="notification-screen-group25">
                                                             <img src="{{ asset('external/vector5165-68pj.svg') }}"
-                                                                alt="Vector5165"
-                                                                class="notification-screen-vector37" />
+                                                                alt="Vector5165" class="notification-screen-vector37" />
                                                             <img src="{{ asset('external/vector5165-fhw.svg') }}"
-                                                                alt="Vector5165"
-                                                                class="notification-screen-vector38" />
+                                                                alt="Vector5165" class="notification-screen-vector38" />
                                                         </div>
                                                     </div>
                                                     <div class="notification-screen-frame3694">
@@ -282,15 +196,56 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('external/rectangle4675146-vix6-200h.png') }}"
-                                                    alt="Rectangle4675146"
-                                                    class="notification-screen-rectangle4674" />
-                                                <span class="notification-screen-text99">
-                                                    {{ $notification['date'] }}
-                                                </span>
-                                                <span class="notification-screen-text100">
-                                                    {{ $notification['time'] }}
-                                                </span>
+                                                <span class="notification-screen-text99">{{ $notification['date'] }}</span>
+                                                <span class="notification-screen-text100">{{ $notification['time'] }}</span>
+                                            </div>
+
+                                        @elseif($notification['type'] == 'rejected_stock')
+                                            <div class="notification-screen-notification5 open-form"
+                                                id="{{ $notification['id'] }}"
+                                                data-type="{{ $notification['type'] }}"
+                                                data-id="{{ $notification['req_id'] }}"
+                                                data-nfid="{{ $notification['id'] }}">
+                                                <div class="notification-screen-frame3705">
+                                                    <div class="notification-screen-frame3695">
+                                                        <span class="notification-screen-text101">
+                                                            {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
+                                                        </span>
+                                                        <span class="notification-screen-text102">
+                                                            {{ $notification['message'] }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span class="notification-screen-text103">{{ $notification['date'] }}</span>
+                                                <span class="notification-screen-text104">{{ $notification['time'] }}</span>
+                                            </div>
+
+                                        @else
+                                            <div class="notification-screen-notification4 open-form"
+                                                id="{{ $notification['id'] }}"
+                                                data-type="{{ $notification['type'] }}"
+                                                data-id="{{ $notification['req_id'] }}"
+                                                data-nfid="{{ $notification['id'] }}">
+                                                <div class="notification-screen-frame3704">
+                                                    <div class="notification-screen-layer15">
+                                                        <div class="notification-screen-group25">
+                                                            <img src="{{ asset('external/vector5165-68pj.svg') }}"
+                                                                alt="Vector5165" class="notification-screen-vector37" />
+                                                            <img src="{{ asset('external/vector5165-fhw.svg') }}"
+                                                                alt="Vector5165" class="notification-screen-vector38" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="notification-screen-frame3694">
+                                                        <span class="notification-screen-text97">
+                                                            {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
+                                                        </span>
+                                                        <span class="notification-screen-text98">
+                                                            {{ $notification['message'] }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span class="notification-screen-text99">{{ $notification['date'] }}</span>
+                                                <span class="notification-screen-text100">{{ $notification['time'] }}</span>
                                             </div>
                                         @endif
                                     @endforeach
@@ -373,7 +328,7 @@
 
     <!-- Modal for Notification Detail -->
     @if ($selectedNotificationId && $notificationType)
-        <div class="modal d-block" id="" tabindex="-1" role="dialog"
+        <div class="modal d-block" tabindex="-1" role="dialog"
             style="background-color: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
                 <div class="modal-content">

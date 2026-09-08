@@ -1,6 +1,44 @@
 <style>
-    .form-group {
-        margin-bottom: 0rem !important;
+    #priceUpdateForm .modal-header {
+        padding: 11px;
+    }
+    #priceUpdateForm .modal-body {
+        padding: 15px !important;
+        font-size: 14px;
+    }
+    #priceUpdateForm .card {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        margin-bottom: 10px !important;
+    }
+    #priceUpdateForm .card-body {
+        padding: 8px 12px !important;
+    }
+    #priceUpdateForm .form-group {
+        margin-bottom: 0px !important;
+    }
+    #priceUpdateForm label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 0;
+    }
+    #priceUpdateForm table {
+        margin-bottom: 0 !important;
+        font-size: 14px;
+    }
+    #priceUpdateForm .table thead th {
+        background-color: #f8f9fa !important;
+        color: #333;
+        padding: 8px !important;
+        border-bottom: 2px solid #dee2e6;
+    }
+    #priceUpdateForm .table td {
+        padding: 6px 8px !important;
+        vertical-align: middle;
+    }
+    #priceUpdateForm .badge {
+        font-size: 11px;
+        padding: 4px 8px;
     }
 </style>
 <form id="priceUpdateForm">
@@ -17,86 +55,68 @@
     </div>
 
     <div class="modal-body">
-        <div class="container mt-1">
-            <div class="card mb-4">
+        <div class="container-fluid p-0">
+            <div class="card">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group main-screen-frame280">
-                                <span class="main-screen-text72"><label>Store: </label> <span
-                                        class="ml-2">{{ $branch_name }}</span></span>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label>Store: </label> <span>{{ $branch_name }}</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6">
                             <div class="form-group">
                                 <label>Requested By: </label>
-                                <span class="ml-2"> {{ $stockRequest->user->name ?? 'N/A' }}</span>
+                                <span> {{ $stockRequest->user->name ?? 'N/A' }}</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6">
                             <div class="form-group">
                                 <label>Date:</label>
-                                <span class="ml-2"> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</span>
+                                <span> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6">
                             <div class="form-group">
                                 <label>Status: </label>
-                                <span
-                                    class=" ml-2 badge 
-                                            {{ $stockRequest->status === 'pending'
-                                                ? 'bg-warning'
-                                                : ($stockRequest->status === 'approved'
-                                                    ? 'bg-success'
-                                                    : 'bg-danger') }}">
+                                <span class="badge {{ $stockRequest->status === 'pending' ? 'bg-warning' : ($stockRequest->status === 'approved' ? 'bg-success' : 'bg-danger') }}">
                                     {{ ucfirst($stockRequest->status) }}
                                 </span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <div class="form-group">
-
                                 <label>Notes: </label>
-                                <span class="ml-2">{{ $stockRequest->notes ?? '-' }}</span>
-
+                                <span>{{ $stockRequest->notes ?? '-' }}</span>
                             </div>
                         </div>
                         @if ($stockRequest->status === 'rejected')
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <div class="form-group">
-
                                 <label>Reason: </label>
-                                <span class="ml-2">{{ $stockRequest->reject_reason ?? '-' }}</span>
-
+                                <span>{{ $stockRequest->reject_reason ?? '-' }}</span>
                             </div>
                         </div>
                         @endif
                     </div>
-
                 </div>
             </div>
 
             <div class="card">
-              
                 <div class="card-body p-0">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-info">
+                    <table class="table table-bordered table-striped mb-0">
+                        <thead>
                             <tr>
                                 <th>#</th>
                                 <th>Product</th>
                                 <th>Size</th>
-                                <th>Quantity</th>
+                                <th>Qty</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @php
-                                $totalQty = 0;
-                            @endphp
-
+                            @php $totalQty = 0; @endphp
                             @foreach ($stockRequest->items as $index => $item)
-                                @php
-                                    $totalQty += $item->quantity;
-                                @endphp
+                                @php $totalQty += $item->quantity; @endphp
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product->name }}</td>
@@ -104,28 +124,20 @@
                                     <td>{{ $item->quantity }}</td>
                                 </tr>
                             @endforeach
-
                             @if ($stockRequest->items->isEmpty())
                                 <tr>
-                                    <td colspan="6" class="text-center">No items found.</td>
+                                    <td colspan="4" class="text-center">No items found.</td>
                                 </tr>
                             @else
                                 <tr>
-                                    <td colspan="3" class="text-right font-weight-bold">Total Quantity:</td>
+                                    <td colspan="3" class="text-right font-weight-bold">Total:</td>
                                     <td class="font-weight-bold">{{ $totalQty }}</td>
                                 </tr>
                             @endif
                         </tbody>
-
                     </table>
                 </div>
             </div>
-            <!-- Page end  -->
         </div>
-    </div>
-
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal">Close</button>
-        {{-- <button type="submit" class="btn btn-primary">Save changes</button> --}}
     </div>
 </form>

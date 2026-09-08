@@ -197,7 +197,7 @@
                             <!-- RIGHT SIDE (IMPORTANT) -->
                             <div class="col-md-4">
 
-                                <h5>Order Details</h5>
+                                <h5>Invoice Details</h5>
 
                                 <input type="hidden" id="popup_total_discount" name="total_discount">
                                 <input type="hidden" id="popup_gr_total" name="sub_total">

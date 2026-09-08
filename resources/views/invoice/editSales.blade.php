@@ -277,7 +277,7 @@
                             <div class="offset-lg-8 col-lg-4">
                                 <div class="or-detail rounded">
                                     <div class="p-3">
-                                        <h5 class="mb-3">Order Details</h5>
+                                        <h5 class="mb-3">Invoice Details</h5>
                                         <input type="hidden" id="total_discount" name="total_discount" value="0">
                                         <input type="hidden" id="ori_total_discount" name="ori_total_discount"
                                             value="0">

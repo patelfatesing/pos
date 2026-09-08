@@ -512,8 +512,10 @@ pre {
 
 .container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
   width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
+  /* padding-right: 15px;
+  padding-left: 15px; */
+  padding-right: 5px;
+  padding-left: 5px;
   margin-right: auto;
   margin-left: auto; }
 
@@ -758,7 +760,9 @@ pre {
     max-width: 25%; }
   .col-sm-4 {
     flex: 0 0 33.33333%;
-    max-width: 33.33333%; }
+    max-width: 33.33333%; 
+    height: 35px;
+  }
   .col-sm-5 {
     flex: 0 0 41.66667%;
     max-width: 41.66667%; }
@@ -1201,7 +1205,7 @@ pre {
   color: #676E8A; }
   .table th,
   .table td {
-    padding: 0.75rem;
+    padding: 0.60rem;
     vertical-align: top;
     border-top: 1px solid #DCDFE8; }
   .table thead th {
@@ -3026,7 +3030,8 @@ textarea.form-control {
 .card-body {
   flex: 1 1 auto;
   min-height: 1px;
-  padding: 1.25rem; }
+  padding: 0.50rem 0.75rem !important; 
+}
 
 .card-title {
   margin-bottom: 0.75rem; }
@@ -7075,7 +7080,7 @@ a.text-light-gray:hover, a.text-light-gray:focus {
   position: fixed;
   z-index: 1000;
   top: 0;
-  width: 260px;
+  width: 220px;
   height: 100%;
   background: #ffffff;
   -webkit-transition: all 0.6s ease-in-out;
@@ -7386,11 +7391,16 @@ a.text-light-gray:hover, a.text-light-gray:focus {
   transition: all 0.3s ease-in-out; }
 
 .iq-sidebar-logo {
-  padding: 15px 20px;
+  /* padding: 15px 20px;
   padding-right: 15px;
   margin-top: 5px;
   margin-bottom: 15px;
-  margin-right: 10px;
+  margin-right: 10px; */
+  padding: 0px 15px !important;
+  padding-right: 15px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  margin-right: 0px !important;
   width: auto;
   position: relative;
   -webkit-transition: all 0.6s ease-in-out;
@@ -7531,7 +7541,7 @@ a.text-light-gray:hover, a.text-light-gray:focus {
     left: -300px;
     top: 0px; }
   body.sidebar-main .iq-sidebar {
-    width: 260px;
+    width: 220px;
     left: 0;
     z-index: 999; } }
 
@@ -7603,7 +7613,7 @@ a.text-light-gray:hover, a.text-light-gray:focus {
   top: 0;
   left: auto;
   right: 0;
-  width: calc(100% - 260px);
+  width: calc(100% - 220px);
   display: inline-block;
   z-index: 99;
   margin: 0;
@@ -14754,7 +14764,7 @@ g[aria-describedby="id-22-description"] {
 
 .content-page {
   overflow: hidden;
-  margin-left: 260px;
+  margin-left: 220px;
   padding: 90px 5px 0px;
   min-height: 100vh;
   -webkit-transition: all 0.3s ease-in-out;

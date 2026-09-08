@@ -82,17 +82,6 @@
             font-weight: 500;
         }
 
-        .regular-price-highlight {
-            font-weight: 700;
-            color: #dc3545;
-            font-size: 0.75rem;
-            background: #fff5f5;
-            padding: 1px 8px;
-            border-radius: 4px;
-            border: 1px solid #fecaca;
-            display: inline-block;
-        }
-
         /* Alternative: Clean badge style */
         .reg-price-badge {
             background: #fef2f2;
@@ -108,7 +97,6 @@
             font-weight: 700;
             color: #dc2626;
         }
-
 
         .total-summary h5 {
             font-size: 18px;
@@ -496,7 +484,7 @@
                         <div class="offset-lg-8 col-lg-4">
                             <div class="order-details-card">
                                 <div class="order-details-header">
-                                    <h5><i class="fas fa-shopping-cart"></i> Order Details</h5>
+                                    <h5><i class="fas fa-shopping-cart"></i> Invoice Details</h5>
                                 </div>
                                 <div class="order-details-body">
                                     <input type="hidden" id="total_discount" name="total_discount" value="0">
@@ -693,9 +681,11 @@
                                         data-discount="${discount}" data-mrp="${mrp}">
                                 </td>
                                 <td>
-                                    <input type="number" step="0.01" name="items[${itemIndex}][sell_price]"
-                                        class="form-control item-price" value="${discount}">
-                                    <small class="regular-price-label" style="display:none;">Regular: <span class="regular-price-highlight"></span></small>
+
+                                    <div class="d-flex align-items-center">
+                                        <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${discount}">
+                                        <small class="regular-price-label" style="display:none;"></small>
+                                    </div>
                                 </td>
                                 <td>
                                     <input type="number" step="0.01" name="items[${itemIndex}][price]"
@@ -857,8 +847,10 @@
                                                 <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" min="1" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
-                                                <small class="regular-price-label"></small>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}">
+                                                    <small class="regular-price-label" style="display:none;"></small>
+                                                </div>
                                             </td>
                                             <td>
                                                 <input type="number" step="0.01" name="items[${itemIndex}][price]" class="form-control item-total-input" value="${Math.ceil(initialPrice * qty)}">

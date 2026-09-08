@@ -92,15 +92,16 @@
                         data: 'created_at'
                     },
                     {
-                        data: 'action'
+                        data: 'action',
+                        className: 'text-center'
                     }
                 ],
                 order: [
-                    [4, 'desc']
+                    [5, 'desc']
                 ],
                 columnDefs: [{
                     orderable: false,
-                    targets: [0, 1, 2, 3,6]
+                    targets: [0, 1, 2, 3, 4, 6]
                 }],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
