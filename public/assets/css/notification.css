@@ -154,37 +154,32 @@
 }
  
 .notification-screen-text85 {
-  top: 2px;
-  left: 261px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 137px;
-  height: auto;
+  top: 6px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
   position: absolute;
   font-size: 11px;
-  font-style: SemiBold;
-  text-align: right;
-  font-family: Open Sans;
   font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  text-align: right;
+  font-family: 'Open Sans', sans-serif;
+  white-space: nowrap;
 }
- 
+
 .notification-screen-text86 {
-  top: 30px;
-  left: 339px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 59px;
-  height: auto;
+  top: 24px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
+  max-width: 130px;
   position: absolute;
-  font-size: 11px;
-  font-style: SemiBold;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
   text-align: right;
-  font-family: Open Sans;
-  font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  font-family: 'Open Sans', sans-serif;
 }
  
 .notification-screen-frame3701 {
@@ -260,7 +255,7 @@
  
 .notification-screen-frame3691 {
   gap: 1px;
-  width: 240px;
+  width: 215px;
   display: flex;
   align-items: flex-start;
   flex-shrink: 0;
@@ -467,7 +462,7 @@
  
 .notification-screen-frame3692 {
   gap: 1px;
-  width: 240px;
+  width: 215px;
   display: flex;
   align-items: flex-start;
   flex-shrink: 0;
@@ -511,37 +506,32 @@
 }
  
 .notification-screen-text91 {
-  top: 2px;
-  left: 261px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 137px;
-  height: auto;
+  top: 6px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
   position: absolute;
   font-size: 11px;
-  font-style: SemiBold;
-  text-align: right;
-  font-family: Open Sans;
   font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  text-align: right;
+  font-family: 'Open Sans', sans-serif;
+  white-space: nowrap;
 }
- 
+
 .notification-screen-text92 {
-  top: 31px;
-  left: 339px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 59px;
-  height: auto;
+  top: 24px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
+  max-width: 130px;
   position: absolute;
-  font-size: 11px;
-  font-style: SemiBold;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
   text-align: right;
-  font-family: Open Sans;
-  font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  font-family: 'Open Sans', sans-serif;
 }
  
 .notification-screen-notification3 {
@@ -604,7 +594,7 @@
  
 .notification-screen-frame3693 {
   gap: 1px;
-  width: 240px;
+  width: 215px;
   display: flex;
   align-items: flex-start;
   flex-shrink: 0;
@@ -648,37 +638,32 @@
 }
  
 .notification-screen-text95 {
-  top: 2px;
-  left: 261px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 137px;
-  height: auto;
+  top: 6px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
   position: absolute;
   font-size: 11px;
-  font-style: SemiBold;
-  text-align: right;
-  font-family: Open Sans;
   font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  text-align: right;
+  font-family: 'Open Sans', sans-serif;
+  white-space: nowrap;
 }
- 
+
 .notification-screen-text96 {
-  top: 31px;
-  left: 339px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 59px;
-  height: auto;
+  top: 24px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
+  max-width: 130px;
   position: absolute;
-  font-size: 11px;
-  font-style: SemiBold;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
   text-align: right;
-  font-family: Open Sans;
-  font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  font-family: 'Open Sans', sans-serif;
 }
  
 .notification-screen-notification4 {
@@ -741,7 +726,7 @@
  
 .notification-screen-frame3694 {
   gap: 1px;
-  width: 240px;
+  width: 215px;
   display: flex;
   align-items: flex-start;
   flex-shrink: 0;
@@ -785,37 +770,32 @@
 }
  
 .notification-screen-text99 {
-  top: 2px;
-  left: 260px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 137px;
-  height: auto;
+  top: 6px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
   position: absolute;
   font-size: 11px;
-  font-style: SemiBold;
-  text-align: right;
-  font-family: Open Sans;
   font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  text-align: right;
+  font-family: 'Open Sans', sans-serif;
+  white-space: nowrap;
 }
- 
+
 .notification-screen-text100 {
-  top: 30px;
-  left: 338px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 59px;
-  height: auto;
+  top: 24px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
+  max-width: 130px;
   position: absolute;
-  font-size: 11px;
-  font-style: SemiBold;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
   text-align: right;
-  font-family: Open Sans;
-  font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  font-family: 'Open Sans', sans-serif;
 }
  
 .notification-screen-notification5 {
@@ -847,7 +827,7 @@
  
 .notification-screen-frame3695 {
   gap: 1px;
-  width: 240px;
+  width: 215px;
   display: flex;
   align-items: flex-start;
   flex-shrink: 0;
@@ -891,37 +871,32 @@
 }
  
 .notification-screen-text103 {
-  top: 2px;
-  left: 260px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 137px;
-  height: auto;
+  top: 6px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
   position: absolute;
   font-size: 11px;
-  font-style: SemiBold;
-  text-align: right;
-  font-family: Open Sans;
   font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  text-align: right;
+  font-family: 'Open Sans', sans-serif;
+  white-space: nowrap;
 }
- 
+
 .notification-screen-text104 {
-  top: 32px;
-  left: 338px;
-  color: rgba(82, 74, 62, 0.8199999928474426);
-  width: 59px;
-  height: auto;
+  top: 24px;
+  right: 12px;
+  left: auto;
+  color: rgba(82, 74, 62, 0.82);
+  width: auto;
+  max-width: 130px;
   position: absolute;
-  font-size: 11px;
-  font-style: SemiBold;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
   text-align: right;
-  font-family: Open Sans;
-  font-weight: 600;
-  line-height: 20px;
-  font-stretch: normal;
-  text-decoration: none;
+  font-family: 'Open Sans', sans-serif;
 }
  
 .notification-screen-polygon1 {

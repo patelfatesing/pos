@@ -31,7 +31,7 @@ body { font-family: 'Poppins', sans-serif; background-color: #f7f9fc; }
 .fixed-bottom { z-index: 0 !important; }
 .bg-light { text-align: center; } 
 .sidebar-item img { /* width: unset ! important; height: unset ! important; */ margin-bottom: unset ! important; object-fit: contain; }
-.custom-modal-header { background: #e9f2f9; }
+.custom-modal-header { background: #e9f2f9; padding: 8px 15px; }
 .cash-summary-group1922 { background-color: rgba(223, 236, 219, 1) ! important; }
 .table-dark { --bs-table-color: rgba(28, 86, 8, 1) ! important; --bs-table-bg: rgba(223, 236, 219, 1) ! important; --bs-table-striped-bg: rgba(223, 236, 219, 1) ! important; --bs-table-border-color: rgba(28, 86, 8, 1) ! important; --bs-table-active-bg: rgba(223, 236, 219, 1) ! important; --bs-table-hover-bg: rgba(223, 236, 219, 1) ! important; --bs-table-active-color: rgba(28, 86, 8, 1) ! important; --bs-table-striped-color: rgba(28, 86, 8, 1) ! important; }
 .cash-summary-frame282 { padding: 13px 15px; border-radius: 20px; background-color: rgba(222, 237, 249, 1); }

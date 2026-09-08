@@ -466,7 +466,7 @@
         <div class="offset-lg-8 col-lg-4">
             <div class="order-details-card">
                 <div class="order-details-header">
-                    <h5><i class="fas fa-shopping-cart"></i> Order Details</h5>
+                    <h5><i class="fas fa-shopping-cart"></i> Invoice Details</h5>
                 </div>
                 <div class="order-details-body">
                     <input type="hidden" id="total_discount" name="total_discount" value="0">
@@ -877,7 +877,7 @@
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <input type="number" step="0.01" name="items[${itemIndex}][sell_price]" class="form-control item-price" value="${initialPrice}" style="width: 100px;">
-                                                    <small class="regular-price-label" style="display:none;></small>
+                                                    <small class="regular-price-label" style="display:none;"></small>
                                                 </div>
                                             </td>
                                             <td>
@@ -1155,6 +1155,7 @@
 
                 if (!commissionUserId) {
                     $(".commission-section").hide();
+                    updateProductDiscounts(null, null);
                     return;
                 }
 
