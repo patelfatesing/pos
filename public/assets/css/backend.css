@@ -3050,7 +3050,8 @@ textarea.form-control {
   margin-left: 1.25rem; }
 
 .card-header {
-  padding: 0.75rem 1.25rem;
+  /* padding: 0.75rem 1.25rem; */
+  padding: 0.25rem 1.25rem !important;
   margin-bottom: 0;
   background-color: rgba(0, 0, 0, 0.03);
   border-bottom: 1px solid rgba(0, 0, 0, 0.125); }
@@ -10348,8 +10349,8 @@ i.amber-text {
 
 .iq-footer {
   padding: 0;
-  margin-left: 260px;
-  width: calc(100vw - 265px);
+  margin-left: 225px;
+  width: calc(100vw - 235px);
   background: #fff;
   box-shadow: none;
   -webkit-transition: all 0.3s ease-in-out;
@@ -14765,7 +14766,7 @@ g[aria-describedby="id-22-description"] {
 .content-page {
   overflow: hidden;
   margin-left: 220px;
-  padding: 90px 5px 0px;
+  padding: 80px 5px 0px;
   min-height: 100vh;
   -webkit-transition: all 0.3s ease-in-out;
   -moz-transition: all 0.3s ease-in-out;

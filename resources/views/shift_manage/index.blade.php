@@ -63,16 +63,16 @@
                 <table class="table table-striped table-bordered nowrap w-100" id="shift_tbl">
                     <thead class="bg-white text-uppercase">
                         <tr class="ligth ligth-data">
-                            <th>Shift No</th>
-                            <th>User</th>
-                            <th>Shift Start</th>
-                            <th>Shift End</th>
-                            <th>Opening <br> Cash</th>
-                            <th>Closing <br> Cash</th>
-                            <th>Status</th>
+                            <th class="text-center">Shift No</th>
+                            <th class="text-center">User</th>
+                            <th class="text-center">Shift Start</th>
+                            <th class="text-center">Shift End</th>
+                            <th class="text-center">Opening <br> Cash</th>
+                            <th class="text-center">Closing <br> Cash</th>
+                            <th class="text-center">Status</th>
                             {{-- <th>Total Sales</th>
                             <th>Difference</th> --}}
-                            <th>Action</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -1,5 +1,10 @@
 @extends('layouts.backend.layouts')
 <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
+<style>
+    .import-instructions {
+        font-size: 13px;
+    }
+</style>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -59,7 +64,7 @@
                                             <div class="alert alert-info">
                                                 <h5 class="alert-heading">Import Instructions</h5>
 
-                                                <ol class="mb-0">
+                                                <ol class="mb-0 import-instructions">
                                                     <li>Download sample file start by downloading the provided sample CSV
                                                         file.</li>
                                                     <li>Prepare your CSV File by using the sample file as a template to

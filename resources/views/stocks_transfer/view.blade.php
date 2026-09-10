@@ -21,7 +21,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <table class="table table-borderless">
+                                    <table class="table table-borderless stock-transfer-detail-table">
                                         <tr>
                                             <th width="150">Transfer Number:</th>
                                             <td>{{ $stockTransfer->transfer_number }}</td>
@@ -37,7 +37,7 @@
                                     </table>
                                 </div>
                                 <div class="col-md-6">
-                                    <table class="table table-borderless">
+                                    <table class="table table-borderless stock-transfer-detail-table">
                                         <tr>
                                             <th width="150">Status:</th>
                                             <td>
@@ -60,11 +60,10 @@
                                 </div>
                             </div>
 
-                            <div class="row mt-4">
+                            <div class="row">
                                 <div class="col-12">
-                                    <h5 class="mb-3">Products Details</h5>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered">
+                                        <table class="table table-bordered" id="stock-transfer-product-table">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
@@ -338,12 +337,32 @@
     <style>
         .table-borderless th,
         .table-borderless td {
-            padding: 0.5rem 0;
+            padding: 0.25rem 0;
+            font-size: 14px;
         }
 
         .badge {
             font-size: 0.85em;
             padding: 0.35em 0.65em;
         }
+
+        .stock-transfer-detail-table tbody th, .stock-transfer-detail-table tbody td {
+            padding: 2px !important;
+        }
+
+        #stock-transfer-product-table thead th {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+
+        #stock-transfer-product-table tfoot th {
+            padding: 0.25rem;
+        }
+
+        #stock-transfer-product-table {
+            font-size: 15px;
+            margin-bottom: 0rem;
+        }
+
     </style>
 @endsection

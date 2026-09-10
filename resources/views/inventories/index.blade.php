@@ -71,7 +71,7 @@
                                 <tr class="ligth ligth-data">
                                     <th>Sr No</th>
                                     <th>Product</th>
-                                    <th>Store</th>
+                                    <th class="text-center">Store</th>
                                     <th>In-<br>Stock</th>
                                     <th>Cost<br>Price</th>
                                     <th>Sales<br>Price</th>

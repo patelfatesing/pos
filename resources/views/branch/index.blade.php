@@ -56,7 +56,7 @@
         <div class="container-fluid">
             <div class="card-header mb-2 d-flex flex-wrap align-items-center justify-content-between">
                 <div>
-                    <h4 class="mb-0">Store List</h4>
+                    <h4 class="mb-0">Store Manage</h4>
                 </div>
                 @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'store-manage'))
                     <a href="{{ route('branch.create') }}" class="btn btn-success add-list">
@@ -333,8 +333,8 @@
                 destroy: true,
                 processing: true,
                 serverSide: true,
-                ordering: true,
-                bLengthChange: true,
+                ordering: false,
+                dom: 'rt',
                 responsive: false,
                 autoWidth: false,
                 pageLength: 10,
@@ -347,21 +347,23 @@
                     lengthMenu: "_MENU_"
                 },
                 columns: [
-                    { data: 'name' },
-                    { data: 'address' },
-                    { data: 'is_active' },
+                    { data: 'name', orderable: false},
+                    { data: 'address'},
+                    { data: 'is_active'},
                     // {
                     //     data: 'main_branch'
                     // },
-                    { data: 'bank_ledger' },
-                    { data: 'created_at' },
-                    { data: 'updated_at' },
+                    { data: 'bank_ledger'},
+                    { data: 'created_at'},
+                    { data: 'updated_at'},
                     {
                         data: 'action',
-                        orderable: false,
                         searchable: false
                     }
-                ]
+                ],
+                initComplete: function () {
+                    $('#branch_table thead th').removeClass('sorting sorting_asc sorting_desc');
+                }
             });
         });
 
