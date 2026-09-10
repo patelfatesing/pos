@@ -123,7 +123,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [1] 
+                    aTargets: [0, 1]
                 }],
                 order: [
                     [2, 'desc']

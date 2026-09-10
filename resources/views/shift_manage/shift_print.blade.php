@@ -250,17 +250,24 @@
         ];
         $salesSummaryTotal = ['Total Shop Sales', number_format($categoryTotals['summary']['TOTAL'] ?? 0, 2)];
 
-        $categoryRows = [];
+        $salesLookup = [];
         foreach (($categoryTotals['sales'] ?? []) as $cat => $amt) {
-            if ($cat !== 'TOTAL') {
-                $categoryRows[] = [ucwords(strtolower($cat)), number_format($amt, 2)];
+            if (strtoupper(trim($cat)) !== 'TOTAL') {
+                $salesLookup[strtolower(trim($cat))] = $amt;
             }
         }
 
         $allSubcategories = $allSubcategories ?? [];
-        if (empty($categoryRows) && !empty($allSubcategories)) {
-            foreach ($allSubcategories as $subcatName) {
-                $categoryRows[] = [ucwords(strtolower($subcatName)), number_format(0, 2)];
+        $categoryRows = [];
+        foreach ($allSubcategories as $subcatName) {
+            $key = strtolower(trim($subcatName));
+            $amt = $salesLookup[$key] ?? 0;
+            $categoryRows[] = [ucwords(strtolower($subcatName)), number_format($amt, 2)];
+        }
+
+        if (empty($categoryRows) && !empty($salesLookup)) {
+            foreach ($salesLookup as $cat => $amt) {
+                $categoryRows[] = [ucwords($cat), number_format($amt, 2)];
             }
         }
 

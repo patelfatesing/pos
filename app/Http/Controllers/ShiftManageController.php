@@ -156,29 +156,45 @@ class ShiftManageController extends Controller
             //     </a>';
 
             // Show "Close Shift" button if end_time is within next 30 minutes
-            $action = '<div class="d-flex align-items-center">';
-            $action .= '<div class="dropdown ml-auto">
-                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
-                    <i class="las la-ellipsis-h"></i>
+
+            if ($row->status == "pending") {
+                $action = '<a class="badge bg-warning close-shift" 
+                                href="javascript:void(0);" 
+                                data-id="' . $row->id . '" 
+                                title="Open Shift">
+                                <i class="ri-lock-unlock-line"></i> Open Shift
+                            </a>';
+            } else {
+                $action = '<a class="badge bg-secondary close-shift" 
+                                href="javascript:void(0);" 
+                                data-id="' . $row->id . '" 
+                                title="Closed">
+                                <i class="ri-lock-line"></i> Closed
+                            </a>';
+            }
+
+            $action = '<div class="d-flex align-items-center justify-content-between">' . $action;
+
+            $action .= '<div class="dropdown ml-3">
+                <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
+                        style="width: 35px; height: 22px;" 
+                        type="button" 
+                        data-toggle="dropdown" 
+                        aria-haspopup="true" 
+                        aria-expanded="false" 
+                        data-boundary="window">
+                    <i class="ri-more-fill mr-0" style="font-size: 18px; "></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">';
 
-            // Show "Close Shift" button
-            if ($row->status == "pending") {
-                $action .= '<a class="dropdown-item close-shift" href="javascript:void(0);" data-id="' . $row->id . '"><i class="ri-lock-unlock-line mr-2"></i> Open Shift</a>';
-            } else {
-                $action .= '<a class="dropdown-item close-shift" href="javascript:void(0);" data-id="' . $row->id . '"><i class="ri-lock-line mr-2"></i> Closed</a>';
-            }
-
             $action .= '<a class="dropdown-item view-invoices" href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '"><i class="ri-eye-line mr-2"></i> View Transactions</a>';
-            
+
             $action .= '<a class="dropdown-item view-image-btn" href="javascript:void(0);" data-image="' . e($img) . '"><i class="ri-image-line mr-2"></i> View Physical Stock Photo</a>';
 
             $action .= '<a class="dropdown-item" href="' . url('/shift-manage/print-shift/' . $row->id) . '" target="_blank"><i class="ri-file-pdf-line mr-2"></i> Print Shift PDF</a>';
 
             $action .= '</div></div>'; // end dropdown
             $action .= '</div>'; // end d-flex
-
 
             $records[] = [
                 'shift_no' => $row->shift_no,

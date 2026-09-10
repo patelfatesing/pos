@@ -10,7 +10,7 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card-header d-flex align-items-center justify-content-between">
-                            <div class="header-title">
+                            <div>
                                 <h4 class="card-title mb-0">Add Product</h4>
                             </div>
                             <div>
@@ -202,15 +202,17 @@
                                             @enderror
                                         </div>
                                     </div> --}}
-                                    <div class="col-md-12">
+                                    <!-- <div class="col-md-12">
                                         <div class="form-group">
                                             <label>Description / Product Details</label>
                                             <textarea class="form-control" name="description" rows="4">{{ old('description') }}</textarea>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
-                                <button type="submit" class="btn btn-success mr-2">Add New Product</button>
-                                <button type="reset" class="btn btn-danger">Reset</button>
+                                <div class="d-flex justify-content-end mr-2">
+                                    <button type="submit" class="btn btn-success mr-2">Add New Product</button>
+                                    <button type="reset" class="btn btn-danger">Reset</button>
+                                </div>
                             </form>
                         </div>
                     </div>

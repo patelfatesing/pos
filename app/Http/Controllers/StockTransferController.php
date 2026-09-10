@@ -191,8 +191,14 @@ class StockTransferController extends Controller
 
             $action = '<div class="d-flex align-items-center">';
             $action .= '<div class="dropdown ml-auto">
-                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
-                    <i class="las la-ellipsis-h"></i>
+                <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
+                        style="width: 35px; height: 22px;" 
+                        type="button" 
+                        data-toggle="dropdown" 
+                        aria-haspopup="true" 
+                        aria-expanded="false" 
+                        data-boundary="window">
+                    <i class="ri-more-fill mr-0" style="font-size: 18px; "></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">';
             
@@ -323,8 +329,14 @@ class StockTransferController extends Controller
 
             $action = '<div class="d-flex align-items-center">';
             $action .= '<div class="dropdown ml-auto">
-                <button class="btn btn-primary btn-sm rounded-circle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window">
-                    <i class="las la-ellipsis-h"></i>
+                <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
+                        style="width: 35px; height: 22px;" 
+                        type="button" 
+                        data-toggle="dropdown" 
+                        aria-haspopup="true" 
+                        aria-expanded="false" 
+                        data-boundary="window">
+                    <i class="ri-more-fill mr-0" style="font-size: 18px; "></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">';
             

@@ -176,7 +176,7 @@
                                             </div>
                                         </div>
                                         {{-- Description --}}
-                                        <div class="col-md-12">
+                                        <!-- <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Description / Product Details</label>
                                                 <textarea class="form-control" name="description" rows="3">{{ old('description', $record->description) }}</textarea>
@@ -184,13 +184,15 @@
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
-                                        </div>
+                                        </div> -->
 
                                     </div>
 
                                     {{-- Buttons --}}
-                                    <button type="submit" class="btn btn-success mr-2">Update Product</button>
-                                    <button type="reset" class="btn btn-danger">Reset</button>
+                                    <div class="d-flex justify-content-end mr-2">
+                                        <button type="submit" class="btn btn-success mr-2">Update Product</button>
+                                        <button type="reset" class="btn btn-danger">Reset</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>

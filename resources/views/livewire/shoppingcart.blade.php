@@ -2741,7 +2741,9 @@
     window.addEventListener('triggerPrint', event => {
         $('#commissionUser').val(null).trigger('change');
         $('#partyUser').val(null).trigger('change');
-        // Hide preview or image if any        const el = document.getElementsByClassName('lastsavepic')[0];
+        
+        // Hide preview or image if any        
+        const el = document.getElementsByClassName('lastsavepic')[0];
         if (el) {
             el.classList.add('d-none');
         }
