@@ -1,5 +1,25 @@
 @extends('layouts.backend.layouts')
 
+<style>
+
+    .select2-results__option {
+        font-size: 13px !important; 
+        padding: 1px 8px !important; 
+        white-space: nowrap;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        font-size: 13px !important;
+        line-height: 32px !important;
+        padding-left: 10px;
+        padding-right: 45px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+</style>
+
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">

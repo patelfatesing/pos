@@ -36,6 +36,189 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         height: 400px;
         overflow-y: auto;
     }
+
+.iq-sub-dropdown.notification-popup-custom {
+    width: 412px !important;
+    min-width: 412px !important;
+    max-width: 412px !important;
+    height: auto !important;
+    max-height: 432px !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12) !important;
+    overflow: hidden;
+    background: #ffffff;
+    flex-direction: column;
+}
+
+.iq-sub-dropdown.notification-popup-custom.show {
+    display: flex !important;
+}
+
+/* Header (Height: 41px, Blue Color Matching #2E9ED1) */
+.notification-custom-header {
+    width: 100%;
+    height: 41px;
+    flex: 0 0 41px;
+    background-color: #2e9ed1;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+}
+
+.notification-header-title {
+    color: #ffffff;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Scrollable Container (flex-grows to fill remaining space) */
+.notification-custom-scroll {
+    flex: 1 1 auto;
+    min-height: 200px;
+    max-height: 341px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #ffffff;
+}
+
+/* Row Item Box (Height: 70px) */
+.notif-row-item {
+    width: 100%;
+    height: 70px;
+    display: flex;
+    position: relative;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    text-decoration: none !important;
+    cursor: pointer;
+    box-sizing: border-box;
+    align-items: center;
+    background-color: #ffffff;
+}
+
+.notif-row-item:hover {
+    filter: brightness(0.97);
+}
+
+.notif-row-item.msg_unread {
+    background-color: #eaf4fb;
+}
+
+.notif-row-item.msg_unread .notif-text-title {
+    color: #0f5f85;
+}
+
+.notif-row-item.msg_read {
+    background-color: #ffffff;
+}
+
+.notif-icon-wrap {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notif-icon-wrap img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.notif-content-wrap {
+    flex-grow: 1;
+    max-width: 235px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.notif-text-title {
+    color: #1e1919;
+    font-size: 16px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    line-height: 16px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notif-text-msg {
+    color: #1e1919;
+    font-size: 12px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
+    line-height: 16px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Date and Time on the right side */
+.notif-date-wrap {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.notif-text-date {
+    color: rgba(82, 74, 62, 0.82);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Open Sans', sans-serif;
+    white-space: nowrap;
+    line-height: 14px;
+}
+
+.notif-text-time {
+    color: rgba(82, 74, 62, 0.82);
+    font-size: 10px;
+    font-weight: 500;
+    font-family: 'Open Sans', sans-serif;
+    line-height: 14px;
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+/* Restored: Show All footer button (was missing in the new file) */
+.notif-show-all-wrapper {
+    flex: 0 0 auto;
+    padding: 10px 12px 14px 12px;
+    background: #ffffff;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.notif-show-all-btn {
+    display: block;
+    width: 100%;
+    background-color: #2e9ed1;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 4px;
+    padding: 1px 0;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.notif-show-all-btn:hover {
+    filter: brightness(0.93);
+    color: #ffffff !important;
+}
 </style>
 <div class="iq-top-navbar">
     <div class="iq-navbar-custom">
@@ -196,7 +379,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             <?php
                             $getNotification = getNotificationsByNotifyTo(Auth::id(), null, 10);
                             $getCount = collect($getNotification)->where('status', 'unread')->count();
-                            
+
                             $getTotalCount = count($getNotification);
                             $user = Auth::user();
                             ?>
@@ -271,37 +454,25 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         <li class="nav-item nav-icon dropdown">
 
                             <a href="#" class="search-toggle dropdown-toggle notification-wrapper"
-                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false">
+                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-bell notification-icon"></i>
-                                <div class="notification-count" id="all_unread_notificationCount">{{ $getCount }}
-                                </div>
-                                <span class="bg-primary"></span>
+                                <div class="notification-count" id="all_unread_notificationCount">{{ $getCount }}</div>
                             </a>
-                            <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <div class="card shadow-none m-0">
-                                    <div class="card-body p-0">
-                                        <div class="cust-title p-3">
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <h5 class="mb-0">Notifications</h5>
-                                                <a class="badge badge-primary badge-card" id="all_notificationCount"
-                                                    href="#">{{ $getTotalCount }}</a>
-                                            </div>
-                                        </div>
-                                        <div class="px-3 pt-0 pb-0 sub-card scrollable-container"
-                                            id="notificationList"></div>
-                                        <div id="showAllWrapper" class="text-center mt-2 mb-2"
-                                            style="display: none;">
-                                            <a href="{{ route('notifications.index') }}"
-                                                class="btn btn-sm btn-success">Show All</a>
-                                        </div>
 
+                            <div class="iq-sub-dropdown dropdown-menu notification-popup-custom dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+                                <div class="notification-custom-header">
+                                    <span class="notification-header-title">
+                                        Notifications (<span id="all_notificationCount">{{ $getTotalCount }}</span>)
+                                    </span>
+                                </div>
 
-                                        {{-- <a class="right-ic btn btn-success btn-block position-relative p-2"
-                                            href="#" role="button">
-                                            View All
-                                        </a> --}}
-                                    </div>
+                                <!-- Scrollable Body -->
+                                <div class="notification-custom-scroll" id="notificationList">
+                                </div>
+
+                                <!-- Restored from old file: Show All footer, hidden until fetchNotifications decides to show it -->
+                                <div id="showAllWrapper" class="notif-show-all-wrapper" style="display: none;">
+                                    <a href="{{ route('notifications.index') }}" class="notif-show-all-btn text-center">Show All</a>
                                 </div>
                             </div>
                         </li>
@@ -368,24 +539,20 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    
     $(document).on('click', '.open-form', function() {
         let type = $(this).data('type');
-
         let id = $(this).data('id');
-
         let nfid = $(this).data('nfid');
         let id_get = $(this).attr('id');
 
-        let get_tc = parseInt($(".notification-count").text()); // get current cou
+        let get_tc = parseInt($(".notification-count").text()); // get current count
 
-        // console.log(get_tc,"==get_tc");
         $.ajax({
             url: '/popup/form/' + type + "?id=" + id + "&nfid=" + nfid,
             type: 'GET',
             success: function(response) {
-                $("#" + id_get).removeClass("iq-sub-card open-form mb-1 msg_unread");
-                $("#" + id_get).addClass("iq-sub-card open-form mb-1 msg_read");
-
+                $("#" + id_get).removeClass("msg_unread").addClass("msg_read");
 
                 if (get_tc > 0) {
                     get_tc = get_tc - 1;
@@ -418,7 +585,6 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
     var channel = pusher.subscribe('drawer-channel');
 
     channel.bind('DrawerOpened', function(data) {
-
         if (data.notify_to == null) {
             Swal.fire({
                 title: '📢 New Notification!',
@@ -450,97 +616,65 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         fetch('{{ route('notifications.get-notication') }}')
             .then(response => response.json())
             .then(data => {
-
                 let get_data = data.data;
-                let all_count = data.res_all;
-
-                // Display or hide "Show All" button
-                if (data.res_all > 10) {
-                    showAllWrapper.style.display = 'block';
-                } else {
-                    showAllWrapper.style.display = 'block';
-                }
 
                 $("#all_unread_notificationCount").text(data.res_all_unread);
-                document.getElementById("all_notificationCount").innerText = data.res_all_unread;
-                document.getElementById("all_notificationCount").innerText = data.res_all;
+                $("#all_notificationCount").text(data.res_all);
+
+                const showAllWrapperEl = document.getElementById('showAllWrapper');
+                if (showAllWrapperEl) {
+                    showAllWrapperEl.style.display = 'block';
+                }
 
                 const container = document.getElementById("notificationList");
                 container.innerHTML = ''; // Clear existing content
 
-                // Get the base URL for assets (notification image)
-                const notificationImageUrl = "{{ asset('assets/images/user/notification.png') }}";
+                if (!get_data || get_data.length === 0) {
+                    container.innerHTML = '<div class="text-center p-3 text-muted" style="font-size: 12px;">No notifications available.</div>';
+                    return;
+                }
+
+                // Bell icon image URL
+                const bellIconUrl = "{{ asset('external/bell14471-yfps.svg') }}";
 
                 get_data.forEach(item => {
-                    let id = '';
-                    if (item.details) {
-                        try {
-                            const parsedDetails = JSON.parse(item.details);
-                            id = item.id || '';
-                        } catch (e) {
-                            console.error('Error parsing details:', e);
-                        }
-                    } else {
-                        id = item.id;
-                    }
+                    let id = item.id || '';
+                    const typeClass = 'notif-type-' + (item.type || 'default');
+                    const typeTitle = item.type ? item.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Notification';
 
+                    // Restored from old file: unread/read class based on status
                     const isRead = item.status === 'read' ? 'msg_read' : 'msg_unread';
-                    const type = item.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
-                    const createdAt = new Date(item.created_at);
-                    const formattedDate = createdAt.toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                    });
 
-                    let html = ''; // Declare HTML variable here
+                    const dt = new Date(item.created_at);
+                    const formattedDate = dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const formattedTime = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-                    if (item.type == 'expire_product') {
-                        html = `
-                        <a href="${data.url}/${item.id}" class="iq-sub-card open-form mb-1 ${isRead}"
-                           data-type="${item.type}" data-id="${item.id}" data-nfid="${item.id}">
-                            <div class="media align-items-center cust-card py-3 border-bottom">
-                                <div>
-                                    <img class="avatar-50 rounded-small" src="${notificationImageUrl}" alt="Notification">
-                                </div>
-                                <div class="media-body ml-3">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <h6 class="mb-0">${type}</h6>
-                                    </div>
-                                    <input type="hidden" value="${id}" name="id" />
-                                    <small class="mb-0 mt-1 mb-1">${item.content}</small>
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <small class="text-dark"><b>${formattedDate}</b></small>
-                                    </div>
-                                </div>
+                    const redirectUrl = item.type === 'expire_product' ? `${data.url}/${item.id}` : '#';
+
+                    let html = `
+                        <div class="notif-row-item open-form ${typeClass} ${isRead}" 
+                             id="${id}" 
+                             data-type="${item.type}" 
+                             data-id="${item.id}" 
+                             data-nfid="${item.id}"
+                             onclick="${item.type === 'expire_product' ? `window.location.href='${redirectUrl}'` : ''}">
+                            
+                            <div class="notif-icon-wrap">
+                                <img src="${bellIconUrl}" alt="Notification Icon" />
                             </div>
-                        </a>
-                    `;
-                    } else {
-                        html = `
-                        <a href="#" id="${id}" class="iq-sub-card open-form mb-1 ${isRead}"
-                           data-type="${item.type}" data-id="${item.id}" data-nfid="${item.id}">
-                            <div class="media align-items-center cust-card py-3 border-bottom">
-                                <div>
-                                    <img class="avatar-50 rounded-small" src="${notificationImageUrl}" alt="Notification">
-                                </div>
-                                <div class="media-body ml-3">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <h6 class="mb-0">${type}</h6>
-                                    </div>
-                                    <input type="hidden" value="${id}" name="id" />
-                                    <small class="mb-0 mt-1 mb-1">${item.content}</small>
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <small class="text-dark"><b>${formattedDate}</b></small>
-                                    </div>
-                                </div>
+
+                            <div class="notif-content-wrap">
+                                <span class="notif-text-title">${typeTitle}</span>
+                                <p class="notif-text-msg">${item.content || item.message || ''}</p>
+                                <input type="hidden" value="${id}" name="id" />
                             </div>
-                        </a>
+
+                            <div class="notif-date-wrap">
+                                <span class="notif-text-date">${formattedDate}</span>
+                                <span class="notif-text-time">${formattedTime}</span>
+                            </div>
+                        </div>
                     `;
-                    }
 
                     container.insertAdjacentHTML('beforeend', html);
                 });

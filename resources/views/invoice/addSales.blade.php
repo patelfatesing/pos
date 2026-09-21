@@ -197,6 +197,7 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             border: 1px solid #e9ecef;
             overflow: hidden;
+            padding-bottom: 5px;
         }
 
         .order-details-header {
@@ -214,20 +215,20 @@
         }
 
         .order-details-body {
-            padding: 10px;
+            padding: 5px 10px;
         }
 
         .order-detail-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 2px 0;
-            border-bottom: 1px solid #f1f3f5;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0;
+    /* remove border-bottom from here */
+}
 
-        .order-detail-item:last-child {
-            border-bottom: none;
-        }
+.order-detail-item + .order-detail-item {
+    border-top: 1px solid #f1f3f5;
+}
 
         .order-detail-item .label {
             color: #6c757d;
@@ -312,6 +313,9 @@
 
         .payment-input-group {
             background: #f8f9fa;
+            padding-top: 0px;
+            padding-bottom: 6px;
+            padding-inline: 10px;
             padding: 5px 10px;
             border-radius: 8px;
             margin-top: 6px;
@@ -321,7 +325,7 @@
             font-size: 13px;
             font-weight: 500;
             color: #495057;
-            margin-bottom: 4px;
+            margin-bottom: 1px;
         }
 
         .payment-input-group .form-control {
@@ -330,6 +334,7 @@
             border-radius: 6px;
             padding: 6px 12px;
             font-size: 14px;
+            height: 40px;
         }
 
         .payment-input-group .form-control:focus {
@@ -339,7 +344,7 @@
 
         .section-divider {
             border-top: 2px dashed #dee2e6;
-            margin: 8px 0;
+            margin: 1px 0;
         }
 
         #product-table-card {

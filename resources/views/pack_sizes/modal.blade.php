@@ -1,7 +1,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div class="container-fluid">
-        <div class="card-header mb-1 d-flex flex-wrap align-items-center justify-content-between">
+        <!-- <div class="card-header mb-1 d-flex flex-wrap align-items-center justify-content-between">
             <div>
                 <h4 class="mb-0">Pack Size List</h4>
             </div>
@@ -10,7 +10,7 @@
                     <i class="las la-plus mr-3"></i>Create New Pack Size
                 </button>
             @endif
-        </div>
+        </div> -->
 
         <div class="table-responsive rounded mb-3">
                 <table class="table table-striped table-bordered nowrap" id="pack_size_tbl">
@@ -98,6 +98,7 @@
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
+                autoWidth: false,
                 language: {
                     search: "",
                     lengthMenu: "_MENU_"
@@ -107,19 +108,17 @@
                     "type": "post",
                     "data": function(d) {},
                 },
-                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                dom: "<'row dt_height'<'col-12 d-flex justify-content-end align-items-center'f l>>" +
+     "t" +
+     "<'row mt-2'<'col-12 text-center text-muted small'i>>" +
+     "<'row mt-1'<'col-12 d-flex justify-content-center'p>>",
                initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
-                aoColumns: [{
-                        data: 'size'
-                    },
-                    {
-                        data: 'is_active'
-                    },
-                    {
-                        data: 'created_at'
-                    },
+                aoColumns: [
+                    { data: 'size', width: '30%' },
+                    { data: 'is_active', width: '25%' },
+                    { data: 'created_at', width: '45%' }
                 ],
                 aoColumnDefs: [{
                     bSortable: false,

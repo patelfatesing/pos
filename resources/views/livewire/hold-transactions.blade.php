@@ -49,7 +49,7 @@
                                 ₹{{ number_format((float) ($transaction->total ?? 0), 2) }}
                             </td>
 
-                            <td class="text-end">
+                            <td class="text-center">
                                 <div class="d-inline-flex align-items-center justify-content-center gap-2 action-buttons-block">
                                     <button
                                         type="button"

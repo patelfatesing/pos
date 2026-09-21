@@ -16,10 +16,11 @@
         margin-bottom: 10px;
     }
     .header-main-title {
-        font-size: 1.15rem;
+        font-size: 1rem;
         font-weight: 700;
         color: #1e293b;
         margin: 0;
+        white-space: nowrap;
     }
 
     /* POS-style Card Design */
@@ -164,28 +165,60 @@
         padding-left: 5px;
         padding-right: 5px;
     }
-    .container-fluid {
-        padding-right: 10px;
-        padding-left: 10px;
+
+    #create-new-pack-size {
+        padding: 4px 8px;
+        margin: 2px;
     }
+
+    #packSizeModalBody {
+        padding-top: 3px;
+        padding-inline: 1px;
+        padding-bottom: 0px;
+    }
+
+    #pack_size_tbl th,
+    #pack_size_tbl td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    /* Pagination Wrapper Styling */
+    .dataTables_wrapper .dataTables_paginate {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 4px;
+        margin-top: 8px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Pagination Buttons */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 2px 8px !important;
+        font-size: 0.8rem !important;
+        border-radius: 4px !important;
+        margin: 0 !important;
+        min-width: 28px !important;
+        text-align: center !important;
+    }
+
+    /* Info Text Styling */
+    .dataTables_wrapper .dataTables_info {
+        font-size: 0.8rem !important;
+        color: #64748b !important;
+        padding-top: 4px !important;
+    }
+
 </style>
 
 <div class="content-page">
     <div class="container-fluid">
 
-        <!-- Top Header Titles & Pack Size Button -->
-        <div class="top-header-section">
-            <div class="col-5 text-center">
-                <h5 class="header-main-title">Main Category</h5>
-            </div>
-            <div class="col-2 text-center px-0">
-                <button type="button" class="btn text-white px-2 py-1 shadow-sm" style="background-color: #ff7e41; border-color: #ff7e41; border-radius: 25px; font-size: 0.95rem; font-weight: 700;" data-toggle="modal" data-target="#packSizeModalPopup">
-                    <i class="las la-box mr-1"></i> Pack Size
-                </button>
-            </div>
-            <div class="col-5 text-center">
-                <h5 class="header-main-title">Sub Category</h5>
-            </div>
+        <div class="card-header d-flex flex-wrap justify-content-end mb-2 px-3 py-2">
+            <button type="button" class="btn text-white px-2 py-1 shadow-sm" style="background-color: #ff7e41; border-color: #ff7e41; border-radius: 25px; font-size: 0.95rem; font-weight: 700;" data-toggle="modal" data-target="#packSizeModalPopup">
+                <i class="las la-box mr-1"></i> Pack Size
+            </button>
         </div>
 
         <div class="row">
@@ -193,7 +226,9 @@
             <div class="col-lg-6 col-md-12">
                 <div class="pos-card">
                     <div class="pos-card-header">
-                        <div class="header-actions-left" id="cat_export_wrapper"></div>
+                        <div class="header-actions-left" id="cat_export_wrapper">
+                            <h4 class="header-main-title">Main Category</h4>
+                        </div>
                         
                         <div class="header-actions-right" id="cat_controls_wrapper">
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'categories-create'))
@@ -227,7 +262,9 @@
             <div class="col-lg-6 col-md-12">
                 <div class="pos-card">
                     <div class="pos-card-header">
-                        <div class="header-actions-left" id="subcat_export_wrapper"></div>
+                        <div class="header-actions-left" id="subcat_export_wrapper">
+                            <h4 class="header-main-title">Sub Category</h4>
+                        </div>
 
                         <div class="header-actions-right" id="subcat_controls_wrapper">
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'sub-categories-create'))
@@ -420,9 +457,11 @@
             responsive: true,
             processing: true,
             serverSide: true,
-            ordering: true,
+            ordering: false,
+            info: false, 
+            searching: false, 
+            dom: "t", 
             ajax: { url: '{{ url('categories/get-data') }}', type: "post" },
-            dom: "rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
             /* 
             // COMMENTED: Download / Export Buttons for Category Table
             buttons: [{
@@ -482,19 +521,19 @@
                 aTargets: [0, 1, 4]
             }],
             order: [[2, 'desc']],
-            initComplete: function () {
-                // COMMENTED: Category Download Button Append
-                // var dtButtons = catTable.buttons().container();
-                // $('#cat_export_wrapper').append(dtButtons);
+            // initComplete: function () {
+            //     // COMMENTED: Category Download Button Append
+            //     // var dtButtons = catTable.buttons().container();
+            //     // $('#cat_export_wrapper').append(dtButtons);
 
-                var lengthMenu = $('<select class="dt-select-len"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>');
-                var searchInput = $('<div class="dt-search-box"><input type="search" placeholder="Search List..."></div>');
+            //     var lengthMenu = $('<select class="dt-select-len"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>');
+            //     var searchInput = $('<div class="dt-search-box"><input type="search" placeholder="Search List..."></div>');
 
-                lengthMenu.on('change', function() { catTable.page.len($(this).val()).draw(); });
-                searchInput.find('input').on('keyup', function() { catTable.search($(this).val()).draw(); });
+            //     lengthMenu.on('change', function() { catTable.page.len($(this).val()).draw(); });
+            //     searchInput.find('input').on('keyup', function() { catTable.search($(this).val()).draw(); });
 
-                $('#cat_controls_wrapper').prepend(searchInput).prepend(lengthMenu);
-            }
+            //     $('#cat_controls_wrapper').prepend(searchInput).prepend(lengthMenu);
+            // }
         });
 
         // 2. Sub Categories Table
@@ -503,9 +542,11 @@
             responsive: true,
             processing: true,
             serverSide: true,
-            ordering: true,
+            ordering: false,
+            info: false,
+            searching: false,
+            dom: "t",
             ajax: { url: '{{ url('subcategories/get-data') }}', type: "post" },
-            dom: "<'d-none'lf>rt<'row align-items-center px-3 py-2'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
             /* 
             // COMMENTED: Download / Export Buttons for Sub Category Table
             buttons: [{
@@ -528,19 +569,19 @@
                 { data: 'action', orderable: false, searchable: false }
             ],
             order: [[3, 'desc']],
-            initComplete: function () {
-                // COMMENTED: Sub Category Download Button Append
-                // var dtButtons = subCatTable.buttons().container();
-                // $('#subcat_export_wrapper').append(dtButtons);
+            // initComplete: function () {
+            //     // COMMENTED: Sub Category Download Button Append
+            //     // var dtButtons = subCatTable.buttons().container();
+            //     // $('#subcat_export_wrapper').append(dtButtons);
 
-                var lengthMenu = $('<select class="dt-select-len"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>');
-                var searchInput = $('<div class="dt-search-box"><input type="search" placeholder="Search List..."></div>');
+            //     var lengthMenu = $('<select class="dt-select-len"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>');
+            //     var searchInput = $('<div class="dt-search-box"><input type="search" placeholder="Search List..."></div>');
 
-                lengthMenu.on('change', function() { subCatTable.page.len($(this).val()).draw(); });
-                searchInput.find('input').on('keyup', function() { subCatTable.search($(this).val()).draw(); });
+            //     lengthMenu.on('change', function() { subCatTable.page.len($(this).val()).draw(); });
+            //     searchInput.find('input').on('keyup', function() { subCatTable.search($(this).val()).draw(); });
 
-                $('#subcat_controls_wrapper').prepend(searchInput).prepend(lengthMenu);
-            }
+            //     $('#subcat_controls_wrapper').prepend(searchInput).prepend(lengthMenu);
+            // }
         });
     });
 
@@ -750,13 +791,24 @@
 
     <!-- Pack Size Modal -->
     <div class="modal fade" id="packSizeModalPopup" tabindex="-1" role="dialog" aria-labelledby="packSizeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="packSizeModalLabel">Pack Size</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header card-header mb-1 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0 text-white">Pack Size List</h4>
+                    </div>
+                    
+                    <div class="d-flex align-items-center ml-auto">
+                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'pack-size-create'))
+                            <button class="btn btn-success add-list mr-3" data-toggle="modal" data-target="#packSizeModal" id="create-new-pack-size">
+                                <i class="las la-plus mr-1"></i>Create New Pack Size
+                            </button>
+                        @endif
+                        
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="modal-body" id="packSizeModalBody">
                     <div class="text-center">Loading...</div>
