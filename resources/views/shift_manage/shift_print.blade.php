@@ -262,7 +262,7 @@
         foreach ($allSubcategories as $subcatName) {
             $key = strtolower(trim($subcatName));
             $amt = $salesLookup[$key] ?? 0;
-            $categoryRows[] = [ucwords(strtolower($subcatName)), number_format($amt, 2)];
+            $categoryRows[] = [ucwords(strtoupper($subcatName)), number_format($amt, 2)];
         }
 
         if (empty($categoryRows) && !empty($salesLookup)) {

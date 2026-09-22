@@ -215,7 +215,8 @@
 <div class="content-page">
     <div class="container-fluid">
 
-        <div class="card-header d-flex flex-wrap justify-content-end mb-2 px-3 py-2">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center mb-2 px-3 py-2">
+            <h5 class="mb-0 font-weight-bold">Category Manage</h5>
             <button type="button" class="btn text-white px-2 py-1 shadow-sm" style="background-color: #ff7e41; border-color: #ff7e41; border-radius: 25px; font-size: 0.95rem; font-weight: 700;" data-toggle="modal" data-target="#packSizeModalPopup">
                 <i class="las la-box mr-1"></i> Pack Size
             </button>
