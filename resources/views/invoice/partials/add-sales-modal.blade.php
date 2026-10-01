@@ -501,16 +501,9 @@
                                 <span class="label">Left Limit</span>
                                 <span class="value success" id="left_credit">₹0.00</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="label">Credit Used</span>
-                                <div>
-                                    <input type="number" name="creditpay" id="creditpay-input"
-                                        min="0" step="0.1"
-                                        class="form-control d-inline-block"
-                                        style="width: 120px; display: inline;">
-                                    <small id="creditpay-error" class="text-danger d-block"
-                                        style="display:none;"></small>
-                                </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="label">Total Used Credit</span>
+                                <span class="value danger" id="total-used-credit">₹0.00</span>
                             </div>
                         </div>
                     </div>
@@ -542,7 +535,7 @@
                         </div>
                     </div>
 
-                    <!-- Cash and UPI Inputs -->
+                    <!-- Cash, UPI and Credit Inputs -->
                     <div id="payment-fields">
                         <div id="cash-field" class="payment-input-group">
                             <label class="form-label">Cash Amount</label>
@@ -554,6 +547,13 @@
                             <label class="form-label">UPI Amount</label>
                             <input type="number" id="upi-amount" class="form-control" name="upi_amount"
                                 min="0" step="1" readonly>
+                        </div>
+
+                        <div id="credit-field" class="payment-input-group" style="display: none;">
+                            <label class="form-label">Credit Used</label>
+                            <input type="number" name="creditpay" id="creditpay-input" min="0"
+                                step="1" class="form-control" value="0">
+                            <small id="creditpay-error" class="text-danger d-block" style="display:none;"></small>
                         </div>
                     </div>
 
@@ -713,7 +713,44 @@
 
                 $('#sub_total').val(grandTotal);
 
-                $('#cash-amount').val(Math.ceil(grandTotal));
+                updatePaymentFields();
+            }
+
+            function updatePaymentFields() {
+                const method = $('input[name="payment_method"]:checked').val() || 'cash';
+                let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
+                let creditPay = parseFloat($('#creditpay-input').val()) || 0;
+                let payable = Math.max(0, Math.ceil(total - creditPay));
+
+                if (method === 'cash') {
+                    $('#cash-field').show();
+                    $('#upi-field').hide();
+                    $('#credit-field').hide();
+                    $('#cash-amount').val(payable);
+                    $('#cash-amount').prop('readonly', true);
+                    $('#upi-amount').val('');
+                } else if (method === 'online') {
+                    $('#cash-field').hide();
+                    $('#upi-field').show();
+                    $('#credit-field').hide();
+                    $('#upi-amount').val(payable);
+                    $('#upi-amount').prop('readonly', true);
+                    $('#cash-amount').val('');
+                } else if (method === 'cashupi') {
+                    $('#cash-field').show();
+                    $('#upi-field').show();
+                    $('#credit-field').hide();
+                    let cash = parseFloat($('#cash-amount').val()) || payable;
+                    cash = Math.min(cash, payable);
+                    $('#cash-amount').val(cash).prop('readonly', false);
+                    $('#upi-amount').val(payable - cash).prop('readonly', false);
+                } else if (method === 'credit') {
+                    $('#cash-field').hide();
+                    $('#upi-field').hide();
+                    $('#credit-field').show();
+                    $('#creditpay-input').val(Math.ceil(total));
+                    $('#creditpay-input').prop('readonly', true);
+                }
             }
 
             // Helper to update regular price display (ONLY when party/commission selected)
@@ -1135,6 +1172,7 @@
                 $.get('{{ route('partyUserCredit', ':id') }}'.replace(':id', partyUserId), function(res) {
                     $('#credit-limit').text('₹' + res.credit);
                     $('#left_credit').text('₹' + res.left_credit);
+                    $('#total-used-credit').text('₹' + (res.use_credit ?? 0));
                     $('#left_credit_id').val(res.left_credit);
                     $('#creditpay-input').val('');
                     
@@ -1214,70 +1252,13 @@
 
             // Handle radio button change event
             $('input[name="payment_method"]').on('change', function() {
-
                 const selectedPaymentMethod = $(this).val();
 
-                let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
-
-                let partyId = $('#party-id').val();
-                let commissionId = $('#commission-id').val();
-                let creditPay = parseFloat($('#creditpay-input').val()) || 0;
-
-                // Apply credit deduction
-                if (partyId || commissionId) {
-                    total = total - creditPay;
+                if (selectedPaymentMethod !== 'credit') {
+                    $('#creditpay-input').val(0).prop('readonly', false);
                 }
 
-                // RESET
-                $('#cash-amount').val('');
-                $('#upi-amount').val('');
-
-                if (selectedPaymentMethod === 'cash') {
-
-                    $('#cash-field').show();
-                    $('#upi-field').hide();
-
-                    $('#cash-amount').val(Math.ceil(total));
-                    $('#cash-amount').prop('readonly', true);
-
-                } else if (selectedPaymentMethod === 'online') {
-
-                    $('#cash-field').hide();
-                    $('#upi-field').show();
-
-                    $('#upi-amount').val(Math.ceil(total));
-                    $('#upi-amount').prop('readonly', true);
-
-                } else if (selectedPaymentMethod === 'cashupi') {
-
-                    $('#cash-field').show();
-                    $('#upi-field').show();
-
-                    $('#cash-amount').val(Math.ceil(total));
-                    $('#upi-amount').val(0);
-
-                    $('#cash-amount').prop('readonly', false);
-                    $('#upi-amount').prop('readonly', false);
-                } else if (selectedPaymentMethod === 'credit') {
-
-                    // ✅ CREDIT FULL PAYMENT
-
-                    $('#cash-field').hide();
-                    $('#upi-field').hide();
-
-                    // Set full credit
-                    $('#creditpay-input').val(Math.ceil(total));
-
-                    // Optional: lock input
-                    $('#creditpay-input').prop('readonly', true);
-                }
-
-            });
-
-            $('input[name="payment_method"]').on('change', function() {
-                if ($(this).val() !== 'credit') {
-                    $('#creditpay-input').prop('readonly', false);
-                }
+                updatePaymentFields();
             });
 
             // When Cash input changes

@@ -475,11 +475,16 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
 
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="addSalesModalTitle">Add Sales</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="modal-title mb-0" id="addSalesModalTitle">Add Sales</h5>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span id="addSalesModalBranch" class="mr-3 font-weight-bold"></span>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="modal-body" id="addSalesContent">
@@ -750,14 +755,52 @@
             }, 300);
         }
 
-        function editInvoiceModal(id) {
-            $('#addSalesModalTitle').text('Edit Sales'); // ✅ set title
-            $('#addSalesContent').html('Loading...');
+        function editInvoiceModal(id, invoiceNo = '', branchName = '') {
+            // 1. If invoiceNo is passed directly from data attributes:
+            if (invoiceNo) {
+                $('#addSalesModalTitle').text('Edit Sales - #' + invoiceNo);
+            } else {
+                $('#addSalesModalTitle').text('Edit Sales');
+            }
 
-            $('#addSalesModal').modal('show'); // reuse same modal
+            if (branchName) {
+                $('#addSalesModalBranch').text('#' + branchName);
+            } else {
+                $('#addSalesModalBranch').text('');
+            }
+
+            $('#addSalesContent').html('Loading...');
+            $('#addSalesModal').modal('show');
 
             $.get('/sales/edit-sales-modal/' + id, function(data) {
                 $('#addSalesContent').html(data);
+
+                // Fallback: If not passed in function call, read from rendered modal data-attributes
+                let loadedInvoiceNo = $('#loaded-invoice-no').val();
+                let loadedBranch = $('#loaded-branch-name').val();
+
+                if (loadedInvoiceNo) {
+                    $('#addSalesModalTitle').text('Edit Sales - #' + loadedInvoiceNo);
+                }
+                if (loadedBranch) {
+                    $('#addSalesModalBranch').text('#' + loadedBranch);
+                }
+            });
+        }
+
+        function openAddSalesModal(branchId, shiftId, branchName) {
+            $('#addSalesModalTitle').text('Add Transaction');
+            $('#addSalesModalBranch').text('#' + branchName);
+            $('#addSalesContent').html('Loading...');
+
+            $('#addSalesModal').modal('show');
+
+            $.get('/sales/add-sales-modal/' + branchId + '/' + shiftId, function(data) {
+                $('#addSalesContent').html(data);
+
+                if (typeof window.initAddSalesSelect2 === 'function') {
+                    window.initAddSalesSelect2();
+                }
             });
         }
 

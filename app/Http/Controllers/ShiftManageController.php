@@ -120,11 +120,21 @@ class ShiftManageController extends Controller
             // $ownerId = $row->created_by;
             $img = $row->physical_photo;
             $endTime = $row->end_time ? \Carbon\Carbon::parse($row->end_time) : null;
-            $status = "";
+            
             if ($row->status == "pending") {
-                $status = "Running";
-            } else if ($row->status == "completed" || $row->status == "closing") {
-                $status = "Closed";
+                $status = '<a class="badge bg-warning close-shift" 
+                                href="javascript:void(0);" 
+                                data-id="' . $row->id . '" 
+                                title="Open Shift">
+                                <i class="ri-lock-unlock-line"></i> Open Shift
+                            </a>';
+            } else {
+                $status = '<a class="badge bg-secondary close-shift" 
+                                href="javascript:void(0);" 
+                                data-id="' . $row->id . '" 
+                                title="Closed">
+                                <i class="ri-lock-line"></i> Closed
+                            </a>';
             }
 
             // $totalInvoicedAmount = \App\Models\Invoice::where('user_id', $row->user_id)
@@ -146,46 +156,18 @@ class ShiftManageController extends Controller
             // $endTime = $row->end_time ? Carbon::parse($row->end_time) : null;
             $now = Carbon::now();
 
-            // $action = '<div class="d-flex align-items-center list-action">
-            //     <a class="badge bg-info mr-2 view-transactions" 
-            //     href="javascript:void(0);" 
-            //     data-branch-id="' . $row->branch_id . '" 
-            //     data-branch-name="' . $row->branch_name . '"
-            //     title="View Transactions">
-            //     <i class="ri-eye-line"></i>
-            //     </a>';
-
-            // Show "Close Shift" button if end_time is within next 30 minutes
-
-            if ($row->status == "pending") {
-                $action = '<a class="badge bg-warning close-shift" 
-                                href="javascript:void(0);" 
-                                data-id="' . $row->id . '" 
-                                title="Open Shift">
-                                <i class="ri-lock-unlock-line"></i> Open Shift
-                            </a>';
-            } else {
-                $action = '<a class="badge bg-secondary close-shift" 
-                                href="javascript:void(0);" 
-                                data-id="' . $row->id . '" 
-                                title="Closed">
-                                <i class="ri-lock-line"></i> Closed
-                            </a>';
-            }
-
-            $action = '<div class="d-flex align-items-center justify-content-between">' . $action;
-
-            $action .= '<div class="dropdown ml-3">
-                <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
-                        style="width: 35px; height: 22px;" 
-                        type="button" 
-                        data-toggle="dropdown" 
-                        aria-haspopup="true" 
-                        aria-expanded="false" 
-                        data-boundary="window">
-                    <i class="ri-more-fill mr-0" style="font-size: 18px; "></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">';
+            $action = '<div class="d-flex align-items-center justify-content-center">
+                <div class="dropdown">
+                    <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
+                            style="width: 35px; height: 22px;" 
+                            type="button" 
+                            data-toggle="dropdown" 
+                            aria-haspopup="true" 
+                            aria-expanded="false" 
+                            data-boundary="window">
+                        <i class="ri-more-fill mr-0" style="font-size: 18px; "></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">';
 
             $action .= '<a class="dropdown-item view-invoices" href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '"><i class="ri-eye-line mr-2"></i> View Transactions</a>';
 
