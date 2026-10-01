@@ -524,6 +524,10 @@
                                                 <span class="label">Left Limit</span>
                                                 <span class="value success" id="left_credit">₹0.00</span>
                                             </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span class="label">Total Used Credit</span>
+                                                <span class="value danger" id="total-used-credit">₹0.00</span>
+                                            </div>
                                             <div class="d-flex justify-content-between align-items-center mt-2">
                                                 <span class="label">Credit Used</span>
                                                 <div>
@@ -1144,6 +1148,7 @@
                 $.get('{{ route('partyUserCredit', ':id') }}'.replace(':id', partyUserId), function(res) {
                     $('#credit-limit').text('₹' + res.credit);
                     $('#left_credit').text('₹' + res.left_credit);
+                    $('#total-used-credit').text('₹' + (res.use_credit ?? 0));
                     $('#left_credit_id').val(res.left_credit);
                     $('#creditpay-input').val('');
                     

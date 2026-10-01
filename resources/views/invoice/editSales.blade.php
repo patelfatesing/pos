@@ -313,15 +313,9 @@
                                                         ₹{{ number_format($invoice->partyUser->left_credit, 2) }}</p>
                                                 </div>
                                                 <div class="mb-2 d-flex justify-content-between">
-                                                    <h6>Credit Used (Invoice)</h6>
-                                                    <p>₹<input type="number" name="creditpay" id="creditpay-input"
-                                                            min="0" step="1"
-                                                            class="form-control d-inline-block"
-                                                            style="width: 120px; display: inline;"
-                                                            value="{{ number_format($invoice->creditpay, 2, '.', '') }}">
-                                                        <small id="creditpay-error" class="text-danger d-block"
-                                                            style="display:none;"></small>
-                                                    </p>
+                                                    <h6>Total Used Credit</h6>
+                                                    <p id="total-used-credit" class="text-danger">
+                                                        ₹{{ number_format($invoice->partyUser->use_credit ?? 0, 2) }}</p>
                                                 </div>
                                             </div>
                                         @endif
@@ -344,19 +338,27 @@
                                             </div>
                                         </div>
 
-                                        <!-- Cash and UPI Inputs Section -->
+                                        <!-- Cash, UPI and Credit Inputs Section -->
                                         <div id="payment-fields">
-                                            <div id="cash-field" class="payment-input">
+                                            <div id="cash-field" class="payment-input" style="{{ $invoice->payment_mode == 'credit' ? 'display: none;' : '' }}">
                                                 <h6>Cash</h6>
                                                 <input type="number" id="cash-amount" class="form-control"
                                                     min="0" step="1" readonly name="cash_amount"
                                                     value="{{ $invoice->cash_amount }}">
                                             </div>
 
-                                            <div id="upi-field" class="payment-input" style="display: none;">
+                                            <div id="upi-field" class="payment-input" style="{{ in_array($invoice->payment_mode, ['online', 'cashupi']) ? '' : 'display: none;' }}">
                                                 <h6>UPI</h6>
                                                 <input type="number" id="upi-amount" class="form-control"
-                                                    name="upi_amount" min="0" step="1" readonly>
+                                                    name="upi_amount" min="0" step="1" readonly
+                                                    value="{{ $invoice->upi_amount ?? 0 }}">
+                                            </div>
+
+                                            <div id="credit-field" class="payment-input" style="{{ $invoice->payment_mode == 'credit' ? '' : 'display: none;' }}">
+                                                <h6>Credit Used</h6>
+                                                <input type="number" name="creditpay" id="creditpay-input" min="0" step="1"
+                                                    class="form-control" value="{{ number_format($invoice->creditpay, 0, '', '') }}">
+                                                <small id="creditpay-error" class="text-danger d-block" style="display:none;"></small>
                                             </div>
                                         </div>
                                     </div>
@@ -755,6 +757,7 @@
 
                 $('#cash-field').show();
                 $('#upi-field').hide();
+                $('#credit-field').hide();
 
                 $('#cash-amount').val(payable);
                 $('#cash-amount').prop('readonly', true);
@@ -768,6 +771,7 @@
 
                 $('#cash-field').hide();
                 $('#upi-field').show();
+                $('#credit-field').hide();
 
                 $('#upi-amount').val(payable);
                 $('#upi-amount').prop('readonly', true);
@@ -781,6 +785,7 @@
 
                 $('#cash-field').show();
                 $('#upi-field').show();
+                $('#credit-field').hide();
 
                 $('#cash-amount').val(payable);
                 $('#upi-amount').val(0);
@@ -794,6 +799,7 @@
 
                 $('#cash-field').hide();
                 $('#upi-field').hide();
+                $('#credit-field').show();
 
                 // ✅ Always full amount
                 $('#creditpay-input').val(grandTotal);

@@ -70,7 +70,6 @@
                                                     <th>Product</th>
                                                     <th>Quantity</th>
                                                     <th>Category</th>
-                                                    <th>Sub Category</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -79,7 +78,6 @@
                                                         <td>{{ $index + 1 }}</td>
                                                         <td>{{ $product->product->name }}</td>
                                                         <td>{{ $product->quantity }}</td>
-                                                        <td>{{ $product->product->category->name ?? 'N/A' }}</td>
                                                         <td>{{ $product->product->subcategory->name ?? 'N/A' }}</td>
                                                     </tr>
                                                 @endforeach
@@ -362,6 +360,10 @@
         #stock-transfer-product-table {
             font-size: 15px;
             margin-bottom: 0rem;
+        }
+
+        #stock-transfer-product-table td {
+            padding: 0px 15px !important;
         }
 
     </style>

@@ -9,6 +9,14 @@
             padding: 8px 12px;
             white-space: nowrap;
         }
+        #shift_tbl th:nth-child(5), #shift_tbl td:nth-child(5),
+        #shift_tbl th:nth-child(6), #shift_tbl td:nth-child(6) {
+            width: 75px !important;
+            min-width: 75px;
+        }
+        #shift_tbl th:nth-child(2), #shift_tbl td:nth-child(2) {
+            width: auto !important;
+        }
         #shift_tbl th:last-child, #shift_tbl td:last-child {
             width: 1% !important;
             text-align: center;
@@ -80,8 +88,8 @@
                     <tfoot>
                         <tr style="font-weight:bold;background:#f8f9fa;">
                             <th colspan="4" class="text-end">Total :</th>
-                            <th id="ft_opening_cash">₹0.00</th>
-                            <th id="ft_closing_cash">₹0.00</th>
+                            <th id="ft_opening_cash" class="text-center">₹0.00</th>
+                            <th id="ft_closing_cash" class="text-center">₹0.00</th>
                             <th></th>
                             {{-- <th id="ft_total_sales">0.00</th>
                             <th id="ft_difference">₹0.00</th> --}}
@@ -290,6 +298,7 @@
                     {
                         data: 'opening_cash',
                         name: 'opening_cash',
+                        className: 'text-center',
                         render: function(data, type, row) {
                             return '₹' + data;
                         }
@@ -297,6 +306,7 @@
                     {
                         data: 'closing_cash',
                         name: 'closing_cash',
+                        className: 'text-center',
                         render: function(data, type, row) {
                             return '₹' + data;
                         }
@@ -304,7 +314,8 @@
                     {
                         data: 'status',
                         name: 'status',
-                        orderable: false
+                        orderable: false,
+                        className: 'text-center'
                     },
                     // {
                     //     data: 'total_transaction',
