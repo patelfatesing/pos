@@ -368,7 +368,7 @@
     .lh-footer {
         margin-top: 40px;
         font-size: 12.5px;
-        color: var(--lh-muted);
+        color: black;
     }
 
     .lh-footer::before {

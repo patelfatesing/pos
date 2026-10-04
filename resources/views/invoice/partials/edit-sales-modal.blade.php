@@ -77,7 +77,7 @@
     }
 
     .order-details-body {
-        padding: 12px 14px;
+        padding: 6px 14px;
     }
 
     .order-detail-item {
