@@ -736,7 +736,7 @@
             });
         }
 
-        $('input[name="payment_method"]').on('change', function() {
+        $(document).on('change', 'input[name="payment_method"]', function() {
             const selected = $(this).val();
             if (selected !== 'credit') {
                 $('#creditpay-input').val(0).prop('readonly', false);
@@ -756,33 +756,43 @@
         }
 
         // Cash + UPI: cash type kare to UPI auto calculate
-        $('#cash-amount').on('input', function() {
+        $(document).on('input', '#cash-amount', function() {
             if (!$('#cash-upi-option').is(':checked')) return;
 
             const payable = getPayable();
-            let cash = parseFloat($(this).val());
+            let val = $(this).val();
+            if (val === '') {
+                $('#upi-amount').val('');
+                return;
+            }
+            let cash = parseFloat(val);
             if (isNaN(cash) || cash < 0) cash = 0;
 
             if (cash > payable) {
                 cash = payable;
                 $(this).val(cash);
             }
-            $('#upi-amount').val(payable - cash);
+            $('#upi-amount').val(Math.max(0, payable - cash));
         });
 
         // Cash + UPI: UPI type kare to Cash auto calculate
-        $('#upi-amount').on('input', function() {
+        $(document).on('input', '#upi-amount', function() {
             if (!$('#cash-upi-option').is(':checked')) return;
 
             const payable = getPayable();
-            let upi = parseFloat($(this).val());
+            let val = $(this).val();
+            if (val === '') {
+                $('#cash-amount').val('');
+                return;
+            }
+            let upi = parseFloat(val);
             if (isNaN(upi) || upi < 0) upi = 0;
 
             if (upi > payable) {
                 upi = payable;
                 $(this).val(upi);
             }
-            $('#cash-amount').val(payable - upi);
+            $('#cash-amount').val(Math.max(0, payable - upi));
         });
 
         $('#creditpay-input').on('input', function() {
@@ -831,11 +841,22 @@
                 $('#cash-field').show();
                 $('#upi-field').show();
                 $('#credit-field').hide();
-                const cashRaw = $('#cash-amount').val();
-                let cash = (cashRaw === '' || isNaN(parseFloat(cashRaw))) ? payable : parseFloat(cashRaw);
-                cash = Math.max(0, Math.min(cash, payable));
+                let cash = parseFloat($('#cash-amount').val());
+                let upi = parseFloat($('#upi-amount').val());
+
+                if (isNaN(cash) && isNaN(upi)) {
+                    cash = payable;
+                    upi = 0;
+                } else if (isNaN(cash)) {
+                    cash = Math.max(0, payable - upi);
+                } else if (isNaN(upi)) {
+                    upi = Math.max(0, payable - cash);
+                } else {
+                    cash = Math.max(0, Math.min(cash, payable));
+                    upi = Math.max(0, payable - cash);
+                }
                 $('#cash-amount').val(cash).prop('readonly', false);
-                $('#upi-amount').val(payable - cash).prop('readonly', false);
+                $('#upi-amount').val(upi).prop('readonly', false);
             } else if (method === 'credit') {
                 $('#cash-field').hide();
                 $('#upi-field').hide();
