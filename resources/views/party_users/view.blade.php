@@ -268,7 +268,24 @@
                             }
                         },
                         {
-                            data: 'status'
+                            data: 'status',
+                            name: 'status',
+                            render: function(data, type, row) {
+
+                                if (row.credit_amount === '0.00') {
+                                    return `<span class="badge bg-info">
+                                        <a href="#" style="color:white;">-</a>
+                                    </span>`;
+                                } else if (row.credit_amount != '0.00' && row.status == 'unpaid') {
+                                    return `<span class="badge bg-danger">
+                                        <a href="#" onClick="payCredit(${row.commission_id})" style="color:white;">Unpaid</a>
+                                    </span>`;
+                                } else {
+                                    return `<span class="badge bg-success">Paid</span>`;
+                                }
+                            },
+                            orderable: false,
+                            searchable: false
                         }
                     ]
                 });
