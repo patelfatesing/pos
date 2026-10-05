@@ -456,10 +456,10 @@ class PartyUserController extends Controller
                 'i.created_at as invoice_date',
                 'i.total as invoice_total',
 
-                'ch.credit_amount',
+                DB::raw('COALESCE(ch.credit_amount, i.creditpay) as credit_amount'),
                 'ch.status',
                 'ch.id as commission_id',
-                'ch.created_at',
+                'i.created_at',
                 'pi.image_path',
                 'pi.transaction_id',
 
@@ -467,7 +467,7 @@ class PartyUserController extends Controller
                 'cu.first_name as commission_user_name'
             )
             ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
-            ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
+            ->leftJoin('party_users as cu', 'i.party_user_id', '=', 'cu.id')
             ->leftJoin('party_images as pi', 'i.id', '=', 'pi.transaction_id')
             ->whereNotNull('i.party_user_id');
 
@@ -479,11 +479,14 @@ class PartyUserController extends Controller
         }
 
         if ($request->customer_id) {
-            $query->where('cu.id', $request->customer_id);
+            $query->where('i.party_user_id', $request->customer_id);
         }
 
         $recordsTotal = DB::table('invoices')
             ->whereNotNull('party_user_id')
+            ->when($request->customer_id, function ($q) use ($request) {
+                $q->where('party_user_id', $request->customer_id);
+            })
             ->count();
 
         $recordsFiltered = (clone $query)->count();
@@ -533,7 +536,7 @@ class PartyUserController extends Controller
         }
 
         // Base query
-        $query = DB::table('credit_histories as ch')
+        $query = DB::table('invoices as i')
             ->select(
                 'i.id as invoice_id',
                 'i.invoice_number',
@@ -544,25 +547,29 @@ class PartyUserController extends Controller
                 'cu.first_name as commission_user_name',
                 'cu.credit_points',
                 'ch.total_purchase_items',
-                'ch.credit_amount',
-                'ch.debit_amount',
+                DB::raw('COALESCE(ch.credit_amount, i.creditpay) as credit_amount'),
+                DB::raw('COALESCE(ch.debit_amount, 0) as debit_amount'),
                 'ch.status',
-                'ch.created_at as trasaction_date',
+                DB::raw('COALESCE(ch.created_at, i.created_at) as trasaction_date'),
                 'ch.id as commission_id',
                 'pi.image_path',
                 'pi.id as party_user_image_id',
                 'pi.transaction_id',
                 'pi.type',
             )
-            ->leftJoin('invoices as i', 'ch.invoice_id', '=', 'i.id')
-            ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
-            ->leftJoin('party_images as pi', 'ch.invoice_id', '=', 'pi.transaction_id');
+            ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
+            ->leftJoin('party_users as cu', 'i.party_user_id', '=', 'cu.id')
+            ->leftJoin('party_images as pi', 'i.id', '=', 'pi.transaction_id')
+            ->whereNotNull('i.party_user_id');
 
 
 
         // Total record count before filters
         $recordsTotal = DB::table('invoices')
             ->whereNotNull('party_user_id')
+            ->when($request->customer_id, function ($q) use ($request) {
+                $q->where('party_user_id', $request->customer_id);
+            })
             ->count();
 
         // Apply search filter
@@ -574,7 +581,7 @@ class PartyUserController extends Controller
         }
 
         if ($request->customer_id) {
-            $query->where('cu.id', $request->customer_id);
+            $query->where('i.party_user_id', $request->customer_id);
         }
 
         // Count after filters

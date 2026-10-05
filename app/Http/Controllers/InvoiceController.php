@@ -480,8 +480,36 @@ class InvoiceController extends Controller
         }
 
         // ================= CREDIT LOG =================
-        $oldCredit = $invoice->creditpay ?? 0;
-        $newCredit = $request->creditpay ?? 0;
+        $oldCredit = (float)($invoice->creditpay ?? 0);
+        $newCredit = (float)($request->creditpay ?? 0);
+
+        if ($branchId == 1 && $invoice->party_user_id) {
+            $partyUser = PartyUser::where('status', 'Active')
+                ->where('is_delete', 'No')
+                ->where('id', $invoice->party_user_id)
+                ->first();
+
+            if ($partyUser) {
+                if ($oldCredit == 0 && $newCredit > 0) {
+                    // Edit Case 2: default non-credit -> credit selected (credit plus)
+                    $partyUser->left_credit = max(0, (float)$partyUser->left_credit - $newCredit);
+                    $partyUser->use_credit = (float)$partyUser->use_credit + $newCredit;
+                    $partyUser->save();
+                } elseif ($oldCredit > 0 && $newCredit == 0) {
+                    // Edit Case 3: default credit -> non-credit selected (credit minus)
+                    $partyUser->left_credit = (float)$partyUser->left_credit + $oldCredit;
+                    $partyUser->use_credit = max(0, (float)$partyUser->use_credit - $oldCredit);
+                    $partyUser->save();
+                } elseif ($oldCredit > 0 && $newCredit > 0 && $oldCredit != $newCredit) {
+                    // Default credit selected, but amount changed
+                    $diff = $newCredit - $oldCredit;
+                    $partyUser->left_credit = max(0, (float)$partyUser->left_credit - $diff);
+                    $partyUser->use_credit = max(0, (float)$partyUser->use_credit + $diff);
+                    $partyUser->save();
+                }
+                // Edit Case 1: default credit selected and same credit amount -> no plus or minus
+            }
+        }
 
         if ($oldCredit != $newCredit && $branchId == 1) {
 

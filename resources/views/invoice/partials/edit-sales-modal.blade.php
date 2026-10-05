@@ -77,7 +77,7 @@
     }
 
     .order-details-body {
-        padding: 12px 14px;
+        padding: 6px 14px;
     }
 
     .order-detail-item {
@@ -462,9 +462,7 @@
     const creditLimit = {{ $invoice->partyUser->credit_points ?? 0 }};
     let grandTotal = 0;
 
-    $(document).ready(function() {
-        updateTotals();
-    });
+    updateTotals();
 
     function updateTotals() {
         grandTotal = 0;
@@ -550,7 +548,7 @@
         });
     }
 
-    $('input[name="payment_method"]').on('change', function() {
+    $(document).on('change', 'input[name="payment_method"]', function() {
         const selected = $(this).val();
         if (selected !== 'credit') {
             $('#creditpay-input').val(0).prop('readonly', false);
@@ -561,28 +559,49 @@
         updatePaymentFields();
     });
 
-    $('#cash-amount').on('input', function() {
-        let cash = parseFloat($(this).val()) || 0;
+    function getPayable() {
+        const method = $('input[name="payment_method"]:checked').val();
         let total = parseFloat($('#gr_total').val()) || 0;
-        let credit = parseFloat($('#creditpay-input').val()) || 0;
-        let payable = total - credit;
+        let credit = (method === 'credit') ? (parseFloat($('#creditpay-input').val()) || 0) : 0;
+        return Math.max(0, Math.ceil(total - credit));
+    }
 
-        if ($('#cash-upi-option').is(':checked')) {
-            let upi = payable - cash;
-            $('#upi-amount').val(upi >= 0 ? Math.ceil(upi) : 0);
+    $(document).on('input', '#cash-amount', function() {
+        if (!$('#cash-upi-option').is(':checked')) return;
+
+        const payable = getPayable();
+        let val = $(this).val();
+        if (val === '') {
+            $('#upi-amount').val('');
+            return;
         }
+        let cash = parseFloat(val);
+        if (isNaN(cash) || cash < 0) cash = 0;
+
+        if (cash > payable) {
+            cash = payable;
+            $(this).val(cash);
+        }
+        $('#upi-amount').val(Math.max(0, payable - cash));
     });
 
-    $('#upi-amount').on('input', function() {
-        let upi = parseFloat($(this).val()) || 0;
-        let total = parseFloat($('#gr_total').val()) || 0;
-        let credit = parseFloat($('#creditpay-input').val()) || 0;
-        let payable = total - credit;
+    $(document).on('input', '#upi-amount', function() {
+        if (!$('#cash-upi-option').is(':checked')) return;
 
-        if ($('#cash-upi-option').is(':checked')) {
-            let cash = payable - upi;
-            $('#cash-amount').val(cash >= 0 ? Math.ceil(cash) : 0);
+        const payable = getPayable();
+        let val = $(this).val();
+        if (val === '') {
+            $('#cash-amount').val('');
+            return;
         }
+        let upi = parseFloat(val);
+        if (isNaN(upi) || upi < 0) upi = 0;
+
+        if (upi > payable) {
+            upi = payable;
+            $(this).val(upi);
+        }
+        $('#cash-amount').val(Math.max(0, payable - upi));
     });
 
     $('#creditpay-input').on('input', function() {
@@ -630,10 +649,22 @@
             $('#cash-field').show();
             $('#upi-field').show();
             $('#credit-field').hide();
-            let cash = parseFloat($('#cash-amount').val()) || payable;
-            cash = Math.min(cash, payable);
+            let cash = parseFloat($('#cash-amount').val());
+            let upi = parseFloat($('#upi-amount').val());
+
+            if (isNaN(cash) && isNaN(upi)) {
+                cash = payable;
+                upi = 0;
+            } else if (isNaN(cash)) {
+                cash = Math.max(0, payable - upi);
+            } else if (isNaN(upi)) {
+                upi = Math.max(0, payable - cash);
+            } else {
+                cash = Math.max(0, Math.min(cash, payable));
+                upi = Math.max(0, payable - cash);
+            }
             $('#cash-amount').val(cash).prop('readonly', false);
-            $('#upi-amount').val(payable - cash).prop('readonly', false);
+            $('#upi-amount').val(upi).prop('readonly', false);
         } else if (method === 'credit') {
             $('#cash-field').hide();
             $('#upi-field').hide();

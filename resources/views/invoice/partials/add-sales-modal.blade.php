@@ -1251,7 +1251,7 @@
             }
 
             // Handle radio button change event
-            $('input[name="payment_method"]').on('change', function() {
+            $(document).on('change', 'input[name="payment_method"]', function() {
                 const selectedPaymentMethod = $(this).val();
 
                 if (selectedPaymentMethod !== 'credit') {
@@ -1262,27 +1262,33 @@
             });
 
             // When Cash input changes
-            $('#cash-amount').on('input', function() {
-                let cash = parseFloat($(this).val()) || 0;
+            $(document).on('input', '#cash-amount', function() {
+                if (!$('#cash-upi-option').is(':checked')) return;
 
-                if ($('#cash-upi-option').is(':checked')) {
-                    let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
+                let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
+                let cash = parseFloat($(this).val());
+                if (isNaN(cash) || cash < 0) cash = 0;
 
-                    let upi = total - cash;
-                    $('#upi-amount').val(upi >= 0 ? Math.ceil(upi) : 0);
+                if (cash > total) {
+                    cash = total;
+                    $(this).val(cash);
                 }
+                $('#upi-amount').val(Math.ceil(total - cash));
             });
 
             // When UPI input changes
-            $('#upi-amount').on('input', function() {
-                let upi = parseFloat($(this).val()) || 0;
+            $(document).on('input', '#upi-amount', function() {
+                if (!$('#cash-upi-option').is(':checked')) return;
 
-                if ($('#cash-upi-option').is(':checked')) {
-                    let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
+                let total = parseFloat($('#grand-total').text().replace('₹', '')) || 0;
+                let upi = parseFloat($(this).val());
+                if (isNaN(upi) || upi < 0) upi = 0;
 
-                    let cash = total - upi;
-                    $('#cash-amount').val(cash >= 0 ? Math.ceil(cash) : 0);
+                if (upi > total) {
+                    upi = total;
+                    $(this).val(upi);
                 }
+                $('#cash-amount').val(Math.ceil(total - upi));
             });
 
         }); // end $(function(){...})

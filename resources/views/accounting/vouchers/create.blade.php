@@ -474,12 +474,10 @@
                                             <thead>
                                                 <tr>
                                                     <th width="5%"></th>
-                                                    <th width="70%">Particulars</th>
-                                                    {{-- <th class="text-end" width="15%"></th> --}}
-                                                    {{-- <th width="15%">Amount</th> --}}
-                                                    <th class="text-end min-w-100">Debit</th>
-                                                    <th class="text-end min-w-100">Credit</th>
-                                                    <th class="remove_badge"></th>
+                                                    <th width="67%">Particulars</th>
+                                                    <th class="text-end min-w-100" width="14%">Debit</th>
+                                                    <th class="text-end min-w-100" width="14%">Credit</th>
+                                                    <th class="remove_badge" width="0%"></th>
                                                 </tr>
                                             </thead>
 
@@ -595,26 +593,27 @@
 
                                             <tfoot>
                                                 <tr class="">
-                                                    <td>
+                                                    <td colspan="2" width="72%">
                                                         <div class="">
                                                             Narration :
                                                             <input type="text" name="narration" class="inline-input" style="width: 500px;">
                                                         </div>
                                                     </td>
 
-                                                    <td class="text-end min-w-100"
+                                                    <td class="text-end" width="14%"
                                                         style="border-top:1px solid #ccc;font-weight:bold; border-bottom: 1px solid #ccc;">
-                                                        <div style="border-bottom: 1px solid #ccc; text-align: center;">
-                                                            <span id="totalDrText">0.00</span>
+                                                        <div style="border-bottom: 1px solid #ccc; text-align: right;">
+                                                            <span id="totalDrText" style="display: inline-block; width: 100px; text-align: right;">0.00</span>
                                                         </div>
                                                     </td>
 
-                                                    <td class="text-end min-w-100"
+                                                    <td class="text-end" width="14%"
                                                         style="border-top:1px solid #ccc;font-weight:bold; border-bottom: 1px solid #ccc;">
-                                                        <div style="border-bottom: 1px solid #ccc;"><span
-                                                                id="totalCrText">0.00</span></div>
+                                                        <div style="border-bottom: 1px solid #ccc; text-align: center;">
+                                                            <span id="totalCrText" style="display: inline-block; width: 100px; text-align: right;">0.00</span>
+                                                        </div>
                                                     </td>
-                                                    <td class="remove_badge"></td>
+                                                    <td width="0%" class="remove_badge"></td>
                                                     {{-- keep hidden for logic --}}
                                                     <td style="display:none">
                                                         <input type="text" id="totalDr" readonly>
