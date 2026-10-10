@@ -73,9 +73,11 @@
 
     .lh-brand-sub {
         letter-spacing: 5px;
-        font-size: 11px;
+        font-size: 15px;
         color: #d8d2c6;
         margin-top: 6px;
+        font-weight: bold;
+        font-family: 'Montserrat', sans-serif;
     }
 
     .lh-welcome {

@@ -497,6 +497,10 @@ class PartyUserController extends Controller
             ->limit($length)
             ->get();
 
+        foreach ($data as $row) {
+            $row->invoice_number = '<a href="' . url('/view-invoice/' . $row->invoice_id) . '" class="badge badge-success">' . $row->invoice_number . '</a>';
+        }
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
@@ -593,6 +597,10 @@ class PartyUserController extends Controller
             ->offset($start)
             ->limit($length)
             ->get();
+
+        foreach ($data as $row) {
+            $row->invoice_number = '<a href="' . url('/view-invoice/' . $row->invoice_id) . '" class="badge badge-success">' . $row->invoice_number . '</a>';
+        }
 
         return response()->json([
             'draw' => $draw,

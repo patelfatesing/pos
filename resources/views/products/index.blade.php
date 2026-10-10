@@ -72,7 +72,7 @@
                         <table class="table table-striped table-bordered nowrap" id="products_table">
                             <thead class="bg-white">
                                 <tr class="ligth ligth-data">
-                                    <th>Sr No</th> <!-- Added this line -->
+                                    <th>Sr <br/> No</th> <!-- Added this line -->
                                     <th>
                                         <b>N</b>ame
                                     </th>
@@ -80,8 +80,8 @@
                                     {{-- <th>Pack Size</th>
                                         <th>Brand</th> --}}
                                     <th>MRP</th>
-                                    <th>Sale Price</th>
-                                    <th>Cost Price</th>
+                                    <th>Sale <br/>Price</th>
+                                    <th>Cost <br/>Price</th>
                                     <th>Status</th>
                                     <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                                     <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
