@@ -89,7 +89,7 @@
                                         @if ($purchase->vendor_id == 1 || $purchase->vendor_id == 2)
                                             <div class="col-lg-4 mb-3">
                                                 <div class="card shadow-sm border-0 h-100 rounded-3">
-                                                    <div class="card-header bg-info border-bottom py-2 px-4">
+                                                    <div class="card-header bg-info border-bottom py-2 px-4" style="min-height: initial">
                                                         <h6 class="mb-0 font-weight-bold"><i class="fas fa-balance-scale mr-2"></i>License Ledger Details</h6>
                                                     </div>
                                                     <div class="card-body px-4">
@@ -154,7 +154,7 @@
 
                                         <div class="col-lg-4 mb-3">
                                             <div class="card shadow-sm border-0 h-100 rounded-3">
-                                                <div class="card-header bg-info border-bottom py-2 px-4">
+                                                <div class="card-header bg-info border-bottom py-2 px-4" style="min-height: initial">
                                                     <h6 class="mb-0 font-weight-bold"><i class="fas fa-file-invoice-dollar mr-2"></i>Billing Details</h6>
                                                 </div>
                                                 <div class="card-body px-4 pb-0">

@@ -53,7 +53,7 @@
 
                                          <div class="{{ $colClass }}">
                                              <div class="card h-100 border-0 shadow-sm">
-                                                 <div class="card-header bg-gradient bg-primary text-white">
+                                                 <div class="card-header bg-gradient bg-primary text-white" style="min-height: initial">
                                                      <h5 class="mb-0 text-capitalize">{{ ucfirst($category) }}
                                                      </h5>
                                                  </div>

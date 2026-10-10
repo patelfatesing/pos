@@ -411,10 +411,10 @@
 
         <div class="content-page create-voucher-page">
             <div class="container-fluid">
-                <div class="card avc_card">
+                <div class="avc_card">
 
                     {{-- ================= CARD HEADER ================= --}}
-                    <div class="avc-header card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Accounting Voucher Creation</h4>
                         <h5 class="title-table">LIQUOR HUB</h5>
                         <div class="create-ledger-link">

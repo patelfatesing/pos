@@ -61,7 +61,7 @@
         <div class="container-fluid">
 
             <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                <h4>Edit Purchase Invoice</h4>
+                <h4 class="mb-0">Edit Purchase Invoice</h4>
                 <!-- <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a> -->
                 <button onclick="window.history.back()" class="btn btn-secondary">
                     Back

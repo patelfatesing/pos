@@ -3,6 +3,11 @@
     .card-header {
         background-color: #528da1 !important;
     }
+
+    #stock-requests-details-view-table th,
+    #stock-requests-details-view-table td {
+        font-size: 15px; 
+    }
 </style>
 <?php
 $roleId = auth()->user()->role_id;
@@ -59,13 +64,12 @@ $roleId = auth()->user()->role_id;
                         <input type="hidden" name="from_store_id" value="{{ $sourceId }}">
 
                         <div class="card-body table-responsive">
-                            <table class="table table-bordered align-middle">
+                            <table class="table table-bordered align-middle" id="stock-requests-details-view-table">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Product</th>
                                         <th>Requested Qty</th>
                                         <th>Available</th>
-
                                         <th>Store Name</th>
                                         <th>Approve Qty</th>
                                         <th>Action</th>

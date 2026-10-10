@@ -1,5 +1,10 @@
 @extends('layouts.backend.layouts')
-
+<style>
+    #productTable th,
+    #productTable td {
+        font-size: 15px; 
+    }
+</style>
 @section('page-content')
     <div class="content-page">
         <div class="container-fluid add-form-list">
