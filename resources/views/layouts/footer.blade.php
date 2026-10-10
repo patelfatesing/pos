@@ -11,11 +11,7 @@
                         </ul>
                     </div>
                     <div class="col-lg-6 text-right">
-                        <span class="mr-1">
-                            <script>
-                                document.write(new Date().getFullYear())
-                            </script>©
-                        </span> <a href="#" class="">LiquorHub</a>.
+                        © {{ date('Y') }} LiquorHub. All rights reserved.
                     </div>
                 </div>
             </div>

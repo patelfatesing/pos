@@ -99,7 +99,7 @@
                                             <td>
                                                 <a href="javascript:void(0)"
                                                     wire:click="openInvoiceModal({{ $ledger->invoice_id }})"
-                                                    class="badge badge-info text-info">
+                                                    class="badge badge-success text-white">
                                                     {{ $ledger->invoice_number }}
                                                 </a>
                                             </td>

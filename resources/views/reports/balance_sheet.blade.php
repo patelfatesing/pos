@@ -60,8 +60,8 @@
         <div class="content-page">
             <div class="container-fluid">
 
-                <div class="card-header d-flex justify-content-between">
-                    <h4>Balance Sheet</h4>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <h4 class="mb-0">Balance Sheet</h4>
                     <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
 

@@ -35,10 +35,8 @@
             <div class="container-fluid">
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                     <div>
-                        <h4 class="report-title">Reports Dashboard</h4>
+                        <h4 class="mb-0">Reports Dashboard</h4>
                     </div>
-
-
                 </div>
                 <div class="col-12 mt-3">
                     <div class="row">

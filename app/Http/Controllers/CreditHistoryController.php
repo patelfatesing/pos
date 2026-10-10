@@ -91,7 +91,7 @@ class CreditHistoryController extends Controller
 
         $data = [];
         foreach ($records as $record) {
-            $action = '<a href="' . url('/view-invoice/' . $record->invoice_id) . '" class="badge badge-info">' . $record->invoice_number . '</a>';
+            $action = '<a href="' . url('/view-invoice/' . $record->invoice_id) . '" class="badge badge-success">' . $record->invoice_number . '</a>';
 
             $data[] = [
                 'invoice_number' => $action,

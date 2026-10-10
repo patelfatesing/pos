@@ -1,6 +1,7 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('styles')
+
     <style>
         .pnl-card {
             border: 1px solid #e5e7eb;
@@ -9,83 +10,29 @@
             background: #fff
         }
 
-        .pnl-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px
+        #pnl_period {
+            cursor: pointer;
+            font-size: 13px;
         }
 
-        .pnl-title {
-            font-weight: 700;
-            font-size: 18px
+        #pnl_period:hover {
+            text-decoration: underline;
+            color: #007bff;
         }
 
-        .pnl-sub {
-            color: #6b7280
+        /* hidden input fully remove from layout */
+        #pnl_daterange {
+            position: absolute !important;
+            left: -99999px !important;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px
-        }
-
-        table.pnl {
-            width: 100%;
-            border-collapse: collapse
-        }
-
-        table.pnl th,
-        table.pnl td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #eee
-        }
-
-        table.pnl th {
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 12px;
-            color: #6b7280
-        }
-
-        .row-total {
-            font-weight: 700;
-            border-top: 2px solid #111
-        }
-
-        .amount {
-            text-align: right
-        }
-
-        .muted {
-            color: #6b7280
-        }
-
-        .filters {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            flex-wrap: nowrap;
-            overflow: hidden;
-            white-space: nowrap;
-            margin-bottom: 10px
-        }
-
-        .filters label {
-            margin-bottom: 0;
-            white-space: nowrap;
-            font-size: .85rem;
-            color: #6b7280
-        }
-
-        .filters .form-control-sm {
-            flex: 0 1 170px;
-            min-width: 120px
-        }
-
-        #btn_refresh {
-            flex: 0 0 auto
+        /* daterangepicker popup above buttons/cards */
+        .daterangepicker {
+            z-index: 99999 !important;
         }
 
         .pnl .child-row td {
@@ -174,19 +121,20 @@
                 <div>
                     <h4 class="mb-0"> Profit &amp; Loss</h4>
                 </div>
-                <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <div class="filters mb-0">
+                        <span id="pnl_period" style="cursor: pointer;"></span>
+                    </div>
+                    <input type="text" id="pnl_daterange" hidden>
+
+                    <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">
+                        Download PDF
+                    </a>
+
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                </div>
             </div>
             <div class="pnl-card">
-                <div class="filters" id="pnl_filters">
-                    <input type="date" id="pnl_start" class="form-control form-control-sm">
-                    <input type="date" id="pnl_end" class="form-control form-control-sm">
-                    <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
-                    <span id="pnl_period" class="ms-2 text-muted"></span>
-                </div>
-
-                <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">
-                    Download PDF
-                </a>
 
                 {{-- Trading Account --}}
                 <div class="two-col mt-2">
@@ -290,40 +238,53 @@
             const $ = id => document.getElementById(id);
             const CSRF = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            const fmtDate = d => {
-                const dt = new Date(d);
-                const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
-                return local.toISOString().slice(0, 10);
-            };
+            let start = moment().subtract(29, 'days').format('YYYY-MM-DD');
+            let end = moment().format('YYYY-MM-DD');
 
-            const today = fmtDate(new Date());
-            const last30 = fmtDate(new Date(Date.now() - 29 * 86400000));
-
-            $('pnl_start').value = last30;
-            $('pnl_end').value = today;
-
-            function updateHeader() {
-                const el = $('pnl_period');
-                if (el) {
-                    el.textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
+            // init picker
+            $('#pnl_daterange').daterangepicker({
+                startDate: moment(start),
+                endDate: moment(end),
+                locale: {
+                    format: 'YYYY-MM-DD'
                 }
+            });
+
+            // click label → open picker
+            $('#pnl_period').on('click', function() {
+                $('#pnl_daterange').data('daterangepicker').show();
+            });
+
+            // update label
+            function updateHeader() {
+                $('#pnl_period').text(start + ' to ' + end);
             }
 
+            // update PDF
             function updatePdfLink() {
                 const params = new URLSearchParams({
-                    start_date: $('pnl_start').value,
-                    end_date: $('pnl_end').value
+                    start_date: start,
+                    end_date: end
                 });
                 $('pnl_pdf_link').href = `${PDF_BASE}?${params.toString()}`;
             }
+
+            $('#pnl_daterange').on('apply.daterangepicker', function(ev, picker) {
+                start = picker.startDate.format('YYYY-MM-DD');
+                end = picker.endDate.format('YYYY-MM-DD');
+
+                updateHeader();
+                updatePdfLink();
+                refresh();
+            });
 
             updateHeader();
             updatePdfLink();
 
             function refresh() {
                 let payload = {
-                    start_date: $('pnl_start').value,
-                    end_date: $('pnl_end').value
+                    start_date: start,
+                    end_date: end
                 };
 
                 fetch(@json(route('reports.pnl_tally.data')), {
@@ -352,7 +313,6 @@
                     })
                     .catch(err => {
                         console.error('Failed to load P&L data', err);
-                        // optionally show user-visible error
                     });
             }
 
@@ -362,8 +322,8 @@
                 const tbody = document.querySelector(selector);
                 tbody.innerHTML = "";
 
-                const start = encodeURIComponent($('pnl_start').value || '');
-                const end = encodeURIComponent($('pnl_end').value || '');
+                const startParam = encodeURIComponent(start);
+                const endParam = encodeURIComponent(end);
 
                 let data = rows || [];
 
@@ -388,7 +348,7 @@
                     if (groupId && r.label) {
 
                         const url =
-                            `${GROUP_SUMMARY_BASE}/${groupId}?start_date=${start}&end_date=${end}`;
+                            `${GROUP_SUMMARY_BASE}/${groupId}?start_date=${startParam}&end_date=${endParam}`;
 
                         labelHtml = `<a href="${url}">${escapeHtml(r.label)}</a>`;
                     }
@@ -414,13 +374,6 @@
                     .replace(/"/g, '&quot;')
                     .replace(/'/g, '&#039;');
             }
-
-            // No method-spoofing / form submission needed — links use GET with query params
-            $('pnl_apply').addEventListener("click", () => {
-                updateHeader();
-                updatePdfLink();
-                refresh();
-            });
 
             refresh();
         })();
