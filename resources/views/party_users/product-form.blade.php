@@ -4,6 +4,42 @@
     #productTable td {
         font-size: 15px; 
     }
+
+    .auto-width-select {
+        display: inline-block;
+    }
+
+    /* Custom visible scrollbar for table box */
+    .scrollable-content {
+        max-height: 450px;
+        overflow-y: auto;
+        position: relative;
+        scrollbar-width: auto;
+        scrollbar-color: #007bff #f1f1f1;
+    }
+
+    .scrollable-content::-webkit-scrollbar {
+        width: 14px; 
+    }
+
+    .scrollable-content::-webkit-scrollbar-track {
+        background: #f1f5f9; 
+        border-radius: 6px;
+    }
+
+    .scrollable-content::-webkit-scrollbar-thumb {
+        background: #007bff;
+        border-radius: 6px;
+        border: 2px solid #f1f5f9; 
+    }
+
+    .scrollable-content::-webkit-scrollbar-thumb:hover {
+        background: #0056b3; 
+    }
+
+    #scrollToTop i {
+        line-height: unset;
+    }
 </style>
 @section('page-content')
     <div class="content-page">
@@ -14,29 +50,23 @@
                         <div>
                             <h4 class="mb-0">⚡ Party Customer Price Change -</h4>
                         </div>
-                        <div class="col-md-5 pr-0"> </div>
-                        <div class="col-md-2 pr-0">
-                            <form class="pull-right mt-3" action="" method="GET" style="display: inline;">
-                                <select name="id" id="id" class="form-control" onchange="this.form.submit()">
-                                    @foreach ($partyUserAll as $party)
-                                        <option value="{{ $party->id }}"
-                                            {{ $partyUser->id == $party->id ? 'selected' : '' }}>
-                                            {{ $party->first_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                        <div class="d-flex align-items-center">
+        <form action="" method="GET" class="mb-0 mr-2">
+            <select name="id" id="id" class="form-control auto-width-select" onchange="this.form.submit()">
+                @foreach ($partyUserAll as $party)
+                    <option value="{{ $party->id }}" {{ $partyUser->id == $party->id ? 'selected' : '' }}>{{ trim($party->first_name) }}</option>
+                @endforeach
+            </select>
 
-                                @if (request()->has('subcategory_id') && !empty(request()->get('subcategory_id')))
-                                    <input type="hidden" name="subcategory_id"
-                                        value="{{ request()->get('subcategory_id') }}">
-                                @endif
-                            </form>
-                        </div>
+            @if (request()->has('subcategory_id') && !empty(request()->get('subcategory_id')))
+                <input type="hidden" name="subcategory_id"
+                    value="{{ request()->get('subcategory_id') }}">
+            @endif
+        </form>
 
-                        <div class="col-md-1 pr-0">
-                            <a href="{{ route('party-users.list') }}" class="btn btn-secondary ml-2">Back</a>
-                        </div>
-                    </div>
+        <a href="{{ route('party-users.list') }}" class="btn btn-secondary text-nowrap">Back</a>
+    </div>
+</div>
                 </div>
             </div>
 
@@ -44,17 +74,15 @@
                 <div class="col-sm-12">
                     <div class="card">
                         <div class="card-body">
-                            <form method="GET" action="{{ route('party-users.cust-product-price-change-form') }}">
-                                <div class="row ml-2 mt-2">
-                                    <div class="col-md-3 mb-2">
+                            <form method="GET" action="{{ route('party-users.cust-product-price-change-form') }}" class="mb-2">
+                                <div class="row ml-2 mt-2 align-items-center">
+                                    <div class="col-md-3">
                                         <!-- 🔍 Search box -->
-                                        <div class="form-group">
-                                            <input type="text" id="productSearch" class="form-control"
-                                                placeholder="🔍 Search Product by Name or MRP" name="search">
-                                        </div>
+                                        <input type="text" id="productSearch" class="form-control"
+                                            placeholder="🔍 Search Product by Name or MRP" name="search">
                                     </div>
 
-                                    <div class="col-md-3 mb-2">
+                                    <div class="col-md-3">
                                         <select name="subcategory_id" id="subcategory_id" class="form-control"
                                             onchange="this.form.submit()">
                                             <option value="">All Subcategories</option>
@@ -67,7 +95,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-md-1 mb-2">
+                                    <div class="col-md-1">
                                         <!-- Reset button that keeps the `id` parameter intact -->
                                         <a href="{{ route('party-users.cust-product-price-change-form') }}?id={{ $partyUser->id }}"
                                             class="btn btn-secondary">Reset</a>
@@ -84,48 +112,44 @@
 
                                 <input type="hidden" name="cust_user_id" value="{{ $partyUser->id }}">
 
-
-
                                 <!-- Product Table -->
                                 <div class="scrollable-content p-3 border rounded" id="scrollableContent">
                                     <div class="table-responsive">
                                         <table class="table table-bordered mb-0" id="productTable">
                                             <thead class="thead-light">
                                                 <tr>
-                                                    <th>#</th>
-                                                    <th>Product</th>
-                                                    <th>MRP</th>
-                                                    <th>Sell Price</th>
-                                                    <th>Discount Price</th>
+                                                    <th class="text-center" style="width: 5%;">#</th>
+                                                    <th style="width: 55%;">Product</th>
+                                                    <th class="text-center" style="width: 12%;">MRP</th>
+                                                    <th class="text-center" style="width: 13%;">Sell Price</th>
+                                                    <th class="text-center" style="width: 15%;">Discount Price</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @forelse($products as $key => $product)
                                                     <tr>
-                                                        <td>{{ $key + 1 }}</td>
+                                                        <td class="text-center">{{ $key + 1 }}</td>
                                                         <td>{{ $product->name }}</td>
-                                                        <td>{{ number_format($product->mrp, 0) }}</td>
-                                                        <td>{{ number_format($product->sell_price, 0) }}</td>
-                                                        <td>
+                                                        <td class="text-center">{{ number_format($product->mrp, 0) }}</td>
+                                                        <td class="text-center">{{ number_format($product->sell_price, 0) }}</td>
+                                                        <td class="text-center">
                                                             <input type="number" step="0.1"
                                                                 name="items[{{ $product->id }}][cust_discount_price]"
                                                                 value="{{ old(
                                                                     'items.' . $product->id . '.cust_discount_price',
                                                                     $product->cust_discount_price == 0 ? (float) $product->mrp : (float) $product->cust_discount_price,
                                                                 ) }}"
-                                                                class="form-control @error('items.' . $product->id . '.cust_discount_price') is-invalid @enderror"
+                                                                class="form-control discount-input mx-auto text-center @error('items.' . $product->id . '.cust_discount_price') is-invalid @enderror"
                                                                 placeholder="Enter discount price">
 
                                                             <input type="hidden" name="items[{{ $product->id }}][mrp]"
                                                                 value="{{ $product->mrp }}">
 
                                                             @error('items.' . $product->id . '.cust_discount_price')
-                                                                <div class="invalid-feedback d-block">{{ $message }}
-                                                                </div>
+                                                                <div class="invalid-feedback d-block">{{ $message }}</div>
                                                             @enderror
                                                             @error('items.' . $product->id . '.sell_price')
-                                                                <div class="invalid-feedback d-block">{{ $message }}
-                                                                </div>
+                                                                <div class="invalid-feedback d-block">{{ $message }}</div>
                                                             @enderror
                                                         </td>
                                                     </tr>
@@ -141,10 +165,10 @@
                                 <a href="#" id="scrollToTop"><i class="fas fa-arrow-up"></i></a>
 
                                 <!-- Notes -->
-                                <div class="form-group mt-3">
+                                <!-- <div class="form-group mt-3">
                                     <label for="notes">Notes</label>
                                     <input type="text" name="notes" class="form-control" placeholder="Enter Notes">
-                                </div>
+                                </div> -->
 
                                 <!-- Submit Buttons -->
                                 <div class="text-right mt-3">
@@ -374,6 +398,35 @@
                     scrollTop: $tableBox.offset().top - 20
                 }, 'slow');
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const select = document.getElementById('id');
+            if (!select) return;
+
+            function adjustSelectWidth() {
+                const tempSpan = document.createElement('span');
+                const selectedText = select.options[select.selectedIndex]?.text || '';
+
+                // Current select style copy karva mate
+                const style = window.getComputedStyle(select);
+                tempSpan.style.font = style.font;
+                tempSpan.style.fontSize = style.fontSize;
+                tempSpan.style.fontWeight = style.fontWeight;
+                tempSpan.style.visibility = 'hidden';
+                tempSpan.style.whiteSpace = 'nowrap';
+                tempSpan.style.position = 'absolute';
+                tempSpan.innerText = selectedText;
+
+                document.body.appendChild(tempSpan);
+                // Text width + padding (arrow space)
+                select.style.width = (tempSpan.offsetWidth + 45) + 'px';
+                document.body.removeChild(tempSpan);
+            }
+
+            // Page load par and option change thava par adjust thase
+            adjustSelectWidth();
+            select.addEventListener('change', adjustSelectWidth);
         });
     </script>
 @endsection
