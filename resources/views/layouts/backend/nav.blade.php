@@ -6,35 +6,77 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 <style>
     .notification-wrapper {
         position: relative;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 35px;
+        height: 35px;
         font-family: sans-serif;
     }
 
     .notification-icon {
-        font-size: 24px;
+        font-size: 22px;
         color: #333;
         cursor: pointer;
     }
 
     .notification-count {
         position: absolute;
-        top: 4px;
-        right: 0px;
+        top: -4px;
+        right: -6px;
         background-color: red;
         color: white;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: bold;
         border-radius: 50%;
-        padding: 2px 6px;
-        min-width: 20px;
+        padding: 1px 5px;
+        min-width: 18px;
         text-align: center;
-        line-height: 1;
+        line-height: 1.2;
         box-shadow: 0 0 0 2px white;
     }
 
     .scrollable-container {
         height: 400px;
         overflow-y: auto;
+    }
+
+    .iq-top-navbar {
+        background: #fff;
+        padding: 5px 30px;
+        min-height: 58px;
+        max-height: 63px;
+        position: fixed;
+        top: 0;
+        left: auto;
+        right: 0;
+        width: calc(100% - 220px);
+        display: flex;
+        align-items: center;
+        z-index: 99;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.04);
+    }
+    .iq-top-navbar .iq-navbar-custom {
+        width: 100%;
+        display: flex;
+        align-items: center;
+    }
+    .iq-top-navbar .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100%;
+    }
+    .iq-top-navbar .navbar-list {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0 !important;
+    }
+    .iq-top-navbar .navbar-list li {
+        display: flex;
+        align-items: center;
     }
 
 .iq-sub-dropdown.notification-popup-custom {
@@ -359,7 +401,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                 data-toggle="modal" data-target="#new-order">{{ session('role_name') }}</a>
                         </li>
-                        <li class="nav-item nav-icon search-content">
+                        <!-- <li class="nav-item nav-icon search-content">
                             <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false">
                                 <i class="ri-search-line"></i>
@@ -373,7 +415,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                     </div>
                                 </form>
                             </div>
-                        </li>
+                        </li> -->
                         <li class="nav-item nav-icon dropdown">
 
                             <?php
@@ -453,10 +495,12 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         </li>
                         <li class="nav-item nav-icon dropdown">
 
-                            <a href="#" class="search-toggle dropdown-toggle notification-wrapper"
-                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell notification-icon"></i>
-                                <div class="notification-count" id="all_unread_notificationCount">{{ $getCount }}</div>
+                            <a href="#" class="search-toggle dropdown-toggle"
+                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 0; background: transparent; border: none;">
+                                <span class="notification-wrapper">
+                                    <i class="fas fa-bell notification-icon"></i>
+                                    <span class="notification-count" id="all_unread_notificationCount">{{ $getCount }}</span>
+                                </span>
                             </a>
 
                             <div class="iq-sub-dropdown dropdown-menu notification-popup-custom dropdown-menu-right" aria-labelledby="dropdownMenuButton">
@@ -487,7 +531,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                     <div class="card-body p-0 text-center">
                                         <div class="media-body profile-detail text-center">
                                             <img src="{{ asset('assets/images/page-img/shop.jpg') }}"
-                                                alt="profile-bg" class="rounded-top img-fluid mb-4" />
+                                                alt="profile-bg" class="rounded-top img-fluid mb-2" />
                                             <img src="{{ asset('assets/images/user/1.png') }}" alt="profile-img"
                                                 class="rounded profile-img img-fluid avatar-70" />
                                         </div>

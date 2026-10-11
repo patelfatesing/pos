@@ -7609,7 +7609,7 @@ a.text-light-gray:hover, a.text-light-gray:focus {
 .iq-top-navbar {
   background: #fff;
   padding: 0 30px 0 30px;
-  min-height: 73px;
+  min-height: 58px;
   position: fixed;
   top: 0;
   left: auto;
@@ -7755,7 +7755,7 @@ body.sidebar-main .iq-top-navbar {
     list-style-type: none;
     position: relative; }
     .navbar-list li > .dropdown {
-      line-height: 73px;
+      line-height: 58px;
       cursor: pointer; }
       .navbar-list li > .dropdown .dropdown-menu {
         -webkit-animation: fade-in-bottom 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
@@ -7774,11 +7774,12 @@ body.sidebar-main .iq-top-navbar {
       font-size: 18px;
       padding: 0 10px;
       display: block;
-      line-height: 73px; }
+      line-height: unset; 
+    }
       .navbar-list li > a > img {
-        width: 50px;
-        height: 50px;
-        min-width: 50px; }
+        width: 45px;
+        height: 45px;
+        min-width: 45px; }
     .navbar-list li a:hover {
       text-decoration: none; }
     .navbar-list li .caption {
@@ -14766,7 +14767,7 @@ g[aria-describedby="id-22-description"] {
 .content-page {
   overflow: hidden;
   margin-left: 220px;
-  padding: 80px 5px 0px;
+  padding: 65px 5px 0px;
   min-height: 100vh;
   -webkit-transition: all 0.3s ease-in-out;
   -moz-transition: all 0.3s ease-in-out;
