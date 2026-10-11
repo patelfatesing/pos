@@ -935,6 +935,8 @@ class PurchaseController extends Controller
                 'total_amount' => '₹' . rtrim(rtrim($purchase->total_amount, '0'), '.'),
                 'created_at' => date('d-m-Y h:i', strtotime($purchase->created_at)),
                 'action' => ' <div class="d-flex align-items-center list-action">
+                            <a class="badge badge-success mr-2" data-toggle="tooltip" title="Edit"
+                                href="' . url('/purchase/' . $purchase->id . '/edit') . '"><i class="ri-pencil-line mr-0"></i></a>
                             <a class="badge badge-info mr-2" data-toggle="tooltip" title="View"
                                 href="' . url('/purchase/view/' . $purchase->id) . '"><i class="ri-eye-line mr-0"></i></a>
                           </div>'

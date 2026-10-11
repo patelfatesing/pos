@@ -693,9 +693,10 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-success mr-2">Add Purchase
-                                            Order</button>
-                                        <button type="reset" class="btn btn-danger">Reset</button>
+                                        <div class="text-right text-end mt-3">
+                                            <button type="submit" class="btn btn-success mr-2">Add Purchase Order</button>
+                                            <button type="reset" class="btn btn-danger">Reset</button>
+                                        </div>
                                     </form>
 
                                 </div>
