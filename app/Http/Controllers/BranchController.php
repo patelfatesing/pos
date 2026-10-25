@@ -174,10 +174,10 @@ class BranchController extends Controller
             $ownerId = $store->created_by;
             // if (canDo($roleId, 'product-edit', $ownerId)) {
             // }
-            $action = '<div class="d-flex align-items-center">';
+            $action = '<div class="d-flex align-items-center justify-content-center">';
             
             // 2. Dropdown Menu at the End (ml-auto pushes it to the right)
-            $action .= '<div class="dropdown ml-auto">
+            $action .= '<div class="dropdown">
                 <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
                         style="width: 35px; height: 22px;" 
                         type="button" 

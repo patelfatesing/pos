@@ -100,8 +100,8 @@ class CommissionUserController extends Controller
             // $last_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">' . $commissionUser->last_name . '</a></div>';
 
 
-            $action = '<div class="d-flex align-items-center">';
-            $action .= '<div class="dropdown ml-auto">
+            $action = '<div class="d-flex align-items-center justify-content-center">';
+            $action .= '<div class="dropdown">
                 <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
                         style="width: 35px; height: 22px;" 
                         type="button" 

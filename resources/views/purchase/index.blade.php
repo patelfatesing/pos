@@ -22,7 +22,7 @@
                             <thead>
                                 <tr>
                                     <th>Bill No</th>
-                                    <th>Party Name</th>
+                                    <th>Vendor Name</th>
                                     <th>Total</th>
                                     <th>Total With Tax</th>
                                     <th>Created At</th>

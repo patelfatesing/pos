@@ -84,7 +84,10 @@
                         data: 'status'
                     },
                     {
-                        data: 'type'
+                        data: 'type',
+                        render: function(data, type, row) {
+                            return data ? data.toUpperCase() : '';
+                        }
                     },
                     {
                         data: 'created_at'

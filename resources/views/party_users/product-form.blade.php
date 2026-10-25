@@ -40,6 +40,17 @@
     #scrollToTop i {
         line-height: unset;
     }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        height: 24px;
+        margin: 0;
+        opacity: 1; 
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
 </style>
 @section('page-content')
     <div class="content-page">
@@ -48,7 +59,7 @@
                 <div class="col-lg-12">
                     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                         <div>
-                            <h4 class="mb-0">⚡ Party Customer Price Change -</h4>
+                            <h4 class="mb-0">⚡ Party Customer Price Change</h4>
                         </div>
                         <div class="d-flex align-items-center">
         <form action="" method="GET" class="mb-0 mr-2">
@@ -193,17 +204,15 @@
         }
 
         .table td {
-            padding-top: 4px !important;
-            padding-bottom: 4px !important;
-            padding-left: 8px !important;
-            padding-right: 8px !important;
             vertical-align: middle !important;
+            padding: 2px 8px !important;
         }
 
         .table td .form-control {
-            height: 32px !important;
+            height: 28px !important;
             padding: 2px 8px !important;
             font-size: 14px;
+            line-height: 0px;
         }
 
         /* Optional: Styling for sort indicators */

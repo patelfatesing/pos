@@ -467,7 +467,7 @@
                                                             <div class="row">
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label>EXCISE FEE</label>
+                                                                        <label>Excise Fee</label>
                                                                         <input type="number" class="form-control"
                                                                             value="{{ old('excise_fee', $purchase->excise_fee) }}"
                                                                             name="excise_fee" id="excise_fee" />
@@ -475,7 +475,7 @@
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label>COMPOSITION VAT</label>
+                                                                        <label>Composition Vat</label>
                                                                         <input type="number" class="form-control"
                                                                             value="{{ old('composition_vat', $purchase->composition_vat) }}"
                                                                             name="composition_vat" id="composition_vat" />
@@ -483,7 +483,7 @@
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label>SURCHARGE ON CA</label>
+                                                                        <label>Surcharge ON CA</label>
                                                                         <input type="number" class="form-control"
                                                                             value="{{ old('surcharge_on_ca', $purchase->surcharge_on_ca) }}"
                                                                             name="surcharge_on_ca" id="surcharge_on_ca" />
@@ -505,7 +505,7 @@
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label>SURCHARGE ON VAT</label>
+                                                                        <label>Surcharge On CA</label>
                                                                         <input type="number" id="surcharge_on_vat"
                                                                             value="{{ old('surcharge_on_vat', $purchase->surcharge_on_vat) }}"
                                                                             class="form-control" name="surcharge_on_vat" />

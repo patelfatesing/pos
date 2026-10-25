@@ -84,8 +84,8 @@
                                             <tr>
                                                 <th style="width:90px">Date</th>
                                                 <th>Particulars</th>
-                                                <th style="width:90px">Vch Type</th>
-                                                <th style="width:70px">Vch No.</th>
+                                                <th style="width:100px">Vch Type</th>
+                                                <th style="width:100px">Vch No.</th>
                                                 <th class="text-end" style="width:120px">Debit Amount <span>Inward
                                                         Qty</span></th>
                                                 <th class="text-end" style="width:130px">Credit Amount <span>Outwards

@@ -570,7 +570,7 @@
                                                             <div class="row">
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label>EXCISE FEE</label>
+                                                                        <label>Excise Fee</label>
                                                                         <input type="number" class="form-control"
                                                                             value="{{ old('excise_fee') }}"
                                                                             name="excise_fee" id="excise_fee" />
@@ -578,7 +578,7 @@
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label>COMPOSITION VAT</label>
+                                                                        <label>Composition Vat</label>
                                                                         <input type="number" class="form-control"
                                                                             value="{{ old('composition_vat') }}"
                                                                             name="composition_vat" id="composition_vat" />
@@ -586,7 +586,7 @@
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label>SURCHARGE ON CA</label>
+                                                                        <label>Surcharge On CA</label>
                                                                         <input type="number" class="form-control"
                                                                             value="{{ old('surcharge_on_ca') }}"
                                                                             name="surcharge_on_ca" id="surcharge_on_ca" />

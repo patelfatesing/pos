@@ -418,7 +418,7 @@
                         <h4 class="mb-0">Accounting Voucher Creation</h4>
                         <h5 class="title-table">LIQUOR HUB</h5>
                         <div class="create-ledger-link">
-                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}" target="_blank"
+                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
                                 class="btn btn-success btn-sm"> Create Ledger </a>
 
                             <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary btn-sm">

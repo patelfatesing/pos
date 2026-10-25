@@ -189,8 +189,8 @@ class StockTransferController extends Controller
 
         foreach ($data as $transfer) {
 
-            $action = '<div class="d-flex align-items-center">';
-            $action .= '<div class="dropdown ml-auto">
+            $action = '<div class="d-flex align-items-center justify-content-center">';
+            $action .= '<div class="dropdown">
                 <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
                         style="width: 35px; height: 22px;" 
                         type="button" 
@@ -327,8 +327,8 @@ class StockTransferController extends Controller
 
         foreach ($data as $transfer) {
 
-            $action = '<div class="d-flex align-items-center">';
-            $action .= '<div class="dropdown ml-auto">
+            $action = '<div class="d-flex align-items-center justify-content-center">';
+            $action .= '<div class="dropdown">
                 <button class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
                         style="width: 35px; height: 22px;" 
                         type="button" 

@@ -168,7 +168,8 @@
                     },
                     {
                         data: 'branch_name',
-                        name: 'branch_name'
+                        name: 'branch_name',
+                        orderable: false,
                     },
                     {
                         data: 'opening_balance',
@@ -176,7 +177,8 @@
                     },
                     {
                         data: 'opening_type',
-                        name: 'opening_type'
+                        name: 'opening_type',
+                        orderable: false,
                     },
                     {
                         data: 'is_active',

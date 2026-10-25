@@ -85,7 +85,7 @@
                                                         <div class="col-lg-6">
 
 
-                                                            <ul class="list-inline p-0 m-0">
+                                                            <!-- <ul class="list-inline p-0 m-0">
                                                                 <li class="mb-2">
                                                                     <div class="d-flex align-items-center">
                                                                         <strong>Applies To:-</strong>
@@ -94,7 +94,7 @@
                                                                         </p>
                                                                     </div>
                                                                 </li>
-                                                            </ul>
+                                                            </ul> -->
                                                         </div>
                                                     </div>
                                                 </div>

@@ -17,13 +17,14 @@
 
         table.pnl {
             width: 100%;
-            border-collapse: collapse
+            border-collapse: collapse;
+            font-size: 14px;
         }
 
         table.pnl th,
         table.pnl td {
             padding: 6px 8px;
-            border-bottom: 1px solid #eee
+            border-bottom: 1px solid #eee;
         }
 
         table.pnl th {
