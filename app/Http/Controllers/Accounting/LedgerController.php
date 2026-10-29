@@ -145,9 +145,9 @@ class LedgerController extends Controller
             $viewUrl = route('accounting.ledgers.view', $l->id);
 
             // Ledger name now clickable
-            $nameLink = '<a href="' . e($viewUrl) . '" class="text-primary fw-bold">'
+            $nameLink = '<b><a href="' . e($viewUrl) . '" style="color: #4f4fef; !important">'
                 . e($l->name) .
-                '</a>';
+                '</a><b>';
 
             // $nameLink = '<a href="' . e($viewUrl) . '" class="text-primary fw-bold">'
             //     . e($l->name) .
@@ -163,7 +163,7 @@ class LedgerController extends Controller
 
             $actions = '
             <div class="d-flex align-items-center gap-1">
-             <a href="' . e($viewUrl) . '" class="btn btn-sm btn-info mr-1">View</a>
+             <a href="' . e($viewUrl) . '" class="btn btn-sm btn-primary mr-1">View</a>
               <a href="' . route('accounting.ledgers.edit', $l->id) . '" class="btn btn-sm btn-warning mr-1">Edit</a>
               <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="' . $l->id . '">Delete</button>
             </div>

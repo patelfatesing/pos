@@ -410,29 +410,20 @@
 
         <hr class="m-0" style="border: 0; border-top: 1px solid #e2e8f0;">
 
+        <hr class="m-0" style="border: 0; border-top: 1px solid #e2e8f0;">
+
         <!-- LiquorHub ERP Branding Footer -->
-        <div class="px-3 pb-0 pt-5">
-            <div class="d-flex align-items-center justify-content-between p-2 rounded-lg"
-                 style="background: #f8fafc; border: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);">
-                <div class="d-flex align-items-center">
-                    <div class="d-flex align-items-center justify-content-center rounded-circle mr-2"
-                         style="width: 32px; height: 32px; background: rgba(50, 114, 244, 0.1); color: #3272f4;">
-                        <i class="las la-wine-bottle" style="font-size: 16px;"></i>
-                    </div>
-                    <div class="d-flex flex-column leading-tight">
-                        <span style="font-size: 13px; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;">
-                            LiquorHub
-                        </span>
-                        <span style="font-size: 10.5px; font-weight: 500; color: #64748b;">
-                            ERP System
-                        </span>
-                    </div>
-                </div>
-                <span class="badge" 
-                      style="font-size: 10.5px; font-weight: 600; background: #e0e7ff; color: #4338ca; border-radius: 9999px; padding: 3px 8px;">
-                    v1.0
-                </span>
-            </div>
+        <div class="py-3 px-3 text-center">
+            <span style="
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                color: #64748b;
+                letter-spacing: 0.3px;
+                display: inline-block;
+            ">
+                LiquorHub ERP <span style="font-weight: 500; color: #94a3b8; font-size: 11.5px;">v1.0</span>
+            </span>
         </div>
     </div>
 </div>

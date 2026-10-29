@@ -366,7 +366,8 @@
 
         .content-page.create-voucher-page {
             min-height: 100%;
-            padding: 90px 0 0;
+            padding: 65px 5px 0px;
+            min-height: 100vh;
         }
 
         .min-w-100 {

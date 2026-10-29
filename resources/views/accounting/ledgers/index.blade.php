@@ -81,7 +81,7 @@
             <div class="table-responsive rounded mb-3">
                 <table class="table table-striped table-bordered nowrap" id="ledgers_table">
                     <thead>
-                        <tr>
+                        <tr class="ligth ligth-data">
                             <th>Sr</th>
                             <th>Name</th>
                             <th>Group</th>

@@ -29,7 +29,7 @@
                     <div class="table-responsive rounded mb-3">
                         <table class="table table-striped table-bordered nowrap" id="groups_table">
                             <thead>
-                                <tr>
+                                <tr class="ligth ligth-data">
                                     <th>Name</th>
                                     <th>Nature</th>
                                     <th>Affects Gross</th>

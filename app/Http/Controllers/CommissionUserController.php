@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Invoice;
+use Illuminate\Validation\Rule;
 
 class CommissionUserController extends Controller
 {
@@ -331,6 +332,7 @@ class CommissionUserController extends Controller
             'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg',
+            'email' => 'nullable|email|max:255|unique:commission_users,email,' . $Commissionuser->id,
         ], [
             'first_name.required' => 'Commission user name is required.',
             'first_name.unique' => 'Commission User has already been taken.'

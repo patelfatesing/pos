@@ -737,6 +737,7 @@ class PurchaseController extends Controller
                 'surcharge_on_ca' => $request->surcharge_on_ca ?? 0,
                 'tcs' => $request->tcs ?? 0,
                 'aed_to_be_paid' => $request->aed_to_be_paid ?? 0,
+                'guarantee_fulfilled' => $request->guarantee_fulfilled ?? 0,
                 'total_amount' => $request->total_amount,
                 'vat' => $request->vat,
                 'surcharge_on_vat' => $request->surcharge_on_vat,

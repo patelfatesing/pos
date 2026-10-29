@@ -30,19 +30,41 @@
             color: #111;
         }
 
-        .header {
+        .generated-on {
+            font-size: 12px;
+            text-align: right;
+            color: #333;
+            padding-bottom: 4px;
+        }
+
+        .shop-name {
+            font-size: 23px;
+            font-weight: bold;
             text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .shop-sub {
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: underline;
+            margin-top: 2px;
             margin-bottom: 10px;
         }
 
-        .title {
-            font-size: 18px;
-            font-weight: 700;
+        .report-bar {
+            background: #bfbfbf;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 5px 0;
+            margin: 6px 0 9px 0;
         }
 
-        .sub {
-            color: #666;
-            margin-top: 3px;
+        .period-line {
+            font-size: 13px;
+            margin-bottom: 9px;
         }
 
         .section-title {
@@ -139,13 +161,12 @@
 </head>
 
 <body>
-    <div class="header">
-        <div class="title">{{ $h($header, 'title', 'Profit & Loss') }}</div>
-        <div class="sub">
-            Period: {{ $h($header, 'period') }} |
-            Branch: {{ $h($header, 'branch', 'All Branches') }}
-        </div>
-    </div>
+    <div class="generated-on">Generated On {{ now()->format('d-m-Y H:i:s') }}</div>
+
+    <div class="shop-name">LIQUOR HUB</div>
+    <div class="shop-sub">{{ $h($header, 'branch', 'All Branches') }}</div>
+
+    <div class="report-bar">{{ $h($header, 'title', 'Profit & Loss') }}</div>
 
     {{-- Trading Account --}}
     <div class="section-title">Trading Account</div>

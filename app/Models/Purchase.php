@@ -28,6 +28,7 @@ class Purchase extends Model
         'surcharge_on_vat',
         'blf',
         'permit_fee',
+        'guarantee_fulfilled',
         'rsgsm_purchase',
         'case_purchase',
         'case_purchase_per',
